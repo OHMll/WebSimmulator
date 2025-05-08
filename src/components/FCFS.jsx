@@ -1,5 +1,3 @@
-import mergeSort from "./Mergesort";
-
 export default function Fcfs(input) {
     if (!input || !Array.isArray(input)) {
       console.error("Error: input is not an array or is undefined", input);
@@ -11,8 +9,8 @@ export default function Fcfs(input) {
       arrival,
       burst,
     }));
-    
-    processes = mergeSort(processes, "arrival");
+  
+    processes.sort((a, b) => a.arrival - b.arrival);
   
     let n = processes.length;
     let wt = new Array(n).fill(0);
@@ -22,17 +20,13 @@ export default function Fcfs(input) {
     let currentTime = processes[0].arrival;
   
     for (let i = 0; i < n; i++) {
-      if (currentTime < processes[i].arrival) {
-        currentTime = processes[i].arrival; // รอจนกว่า process จะมาถึง
-      }
-    
       ct[i] = currentTime + processes[i].burst;
       tat[i] = ct[i] - processes[i].arrival;
       wt[i] = tat[i] - processes[i].burst;
       gantt.push({ pid: processes[i].pid, start: currentTime, end: ct[i] });
       currentTime = ct[i];
     }
-    
+  
     let contextData = gantt.map((entry, i) => {
       let duration =
         i === gantt.length - 1

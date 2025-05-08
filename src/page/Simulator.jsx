@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Parameter from "../components/parameter";
 
 function Simulator() {
@@ -14,24 +14,12 @@ function Simulator() {
     "Priority",
   ];
 
-  // โหลดการตั้งค่าจาก localStorage เมื่อ component ถูกโหลด
-  useEffect(() => {
-    const savedAlgorithms = localStorage.getItem("selectedAlgorithms");
-    if (savedAlgorithms) {
-      setSelectedAlgo(JSON.parse(savedAlgorithms));
-    }
-  }, []);
-
   const toggleSelection = (algo) => {
-    setSelectedAlgo((prevSelected) => {
-      const newSelection = prevSelected.includes(algo)
+    setSelectedAlgo((prevSelected) =>
+      prevSelected.includes(algo)
         ? prevSelected.filter((item) => item !== algo) // ถ้าเลือกแล้วให้เอาออก
-        : [...prevSelected, algo]; // ถ้ายังไม่ได้เลือกให้เพิ่มเข้าไป
-      
-      // บันทึกค่าลงใน localStorage
-      localStorage.setItem("selectedAlgorithms", JSON.stringify(newSelection));
-      return newSelection;
-    });
+        : [...prevSelected, algo] // ถ้ายังไม่ได้เลือกให้เพิ่มเข้าไป
+    );
   };
 
   return (

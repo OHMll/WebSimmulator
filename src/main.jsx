@@ -6,19 +6,25 @@ import Menubar from "./components/menubar";  // ตรวจสอบ path ว�
 import Homepage from "./page/Home";
 import Overview from "./page/Overview";
 import Simulator from "./page/Simulator";
-import ResultSim from "./page/Resultsim"; // สมมติไฟล์อยู่ใน /page เหมือนหน้าอื่น
-
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Router>
-      <Menubar /> {/* แสดงเมนูบาร์ในทุกหน้า */}
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/overview" element={<Overview />} />
-        <Route path="/simulator" element={<Simulator />} />
-        <Route path="/resultsim" element={<ResultSim />} />
-      </Routes>
+      <div className="flex flex-col h-screen w-screen">
+        {/* Menubar */}
+        <div>
+          <Menubar />
+        </div>
+
+        {/* เนื้อหา */}
+        <div className="flex-1 overflow-hidden">
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/overview" element={<Overview />} />
+            <Route path="/simulator" element={<Simulator />} />
+          </Routes>
+        </div>
+      </div>
     </Router>
   </StrictMode>
 );

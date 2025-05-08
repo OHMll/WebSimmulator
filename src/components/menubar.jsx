@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Cpu, House, BadgeInfo } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Infopopup from "./Infopopup"; // นำเข้า Infopopup component
+import Infopopup from "../components/Infopopup"; // นำเข้า Infopopup component
 
 const MenuButton = ({ isActive, onClick, children }) => {
   const textColor = isActive ? "text-[#112D4E]" : "text-[#8a8b96]";
@@ -50,7 +50,7 @@ const Menubar = () => {
   const [isPopupVisible, setPopupVisible] = useState(false);
 
   const getActiveButton = () => {
-    if (location.pathname === "/simulator" || location.pathname === "/resultsim") return "processScheduling";
+    if (location.pathname === "/simulator") return "processScheduling";
     if (location.pathname === "/overview") return "osOverview";
     return "home"; // Default
   };
