@@ -2,6 +2,33 @@ import React, { useEffect, useState, useRef } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 function Resultsim() {
+  // เพิ่ม CSS Animation เพื่อรองรับ fadeIn
+  React.useEffect(() => {
+    // เพิ่ม style element เข้าใน document
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = `
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+    `;
+    document.head.appendChild(styleEl);
+    
+    // Cleanup
+    return () => {
+      document.head.removeChild(styleEl);
+    };
+  }, []);
+
   const [results, setResults] = useState(null);
   const [processList, setProcessList] = useState([]);
   const [error, setError] = useState(null);
@@ -260,46 +287,46 @@ function Resultsim() {
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-2 sm:p-4"
         onClick={() => setZoomedChart(null)}
       >
         <div
-          className="bg-white rounded-lg shadow-2xl p-6 max-w-5xl w-full relative animate-fadeIn"
+          className="bg-white rounded-lg shadow-2xl p-3 sm:p-6 max-w-5xl w-full relative animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
           style={{
             animation: 'fadeIn 0.3s ease-out',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}
         >
-          <h2 className="text-xl font-bold mb-4 flex items-center">
+          <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 flex flex-wrap items-center">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">{name}</span>
             <span className="mx-2 text-gray-500">-</span>
             <span className="text-gray-700">Gantt Chart</span>
             
             <button
-              className="ml-4 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 
-                        text-white py-1 px-4 rounded-md text-sm flex items-center transition-all shadow-md
+              className="mt-2 sm:mt-0 ml-0 sm:ml-4 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 
+                        text-white py-1 px-3 sm:px-4 rounded-md text-xs sm:text-sm flex items-center transition-all shadow-md
                         hover:shadow-lg transform hover:translate-y-px active:translate-y-0.5"
               onClick={(e) => {
                 e.stopPropagation();
                 replayAnimation(name);
               }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
               </svg>
-              เล่นแอนิเมชันซ้ำ
+              <span className="whitespace-nowrap">เล่นแอนิเมชันซ้ำ</span>
             </button>
           </h2>
-          <div className="max-h-[70vh] overflow-auto border border-gray-200 p-4 rounded-lg bg-gray-50 shadow-inner">
+          <div className="max-h-[60vh] sm:max-h-[70vh] overflow-auto border border-gray-200 p-2 sm:p-4 rounded-lg bg-gray-50 shadow-inner">
             {renderGanttChart(contextData, name)}
           </div>
           <button
             onClick={() => setZoomedChart(null)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-full transition-all"
+            className="absolute top-2 sm:top-3 right-2 sm:right-3 text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-full transition-all"
             aria-label="ปิด"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </button>
@@ -317,16 +344,9 @@ function Resultsim() {
     const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
     const currentAlgorithms = algorithms.slice(startIdx, endIdx);
 
-    let cardSizeClass = "w-[20%]";
-    switch (currentAlgorithms.length) {
-      case 1: cardSizeClass = "w-full"; break;
-      case 2: cardSizeClass = "w-[45%]"; break;
-      case 3: cardSizeClass = "w-[30%]"; break;
-    }
-
     return (
-      <div className="w-[90vw]">
-        <div className="flex flex-wrap justify-center gap-[5%] w-full max-w-full mx-auto">
+      <div className="w-full px-2 sm:px-4 md:w-[90vw]">
+        <div className="flex flex-wrap justify-center gap-4 w-full max-w-full mx-auto">
           {currentAlgorithms.map((algo, idx) => {
             const algoData = algorithmResults.find(a => a.name === algo) || {
               name: algo,
@@ -335,31 +355,31 @@ function Resultsim() {
             return (
               <div 
                 key={idx} 
-                className={`bg-white rounded-lg shadow-md overflow-hidden ${cardSizeClass} mb-4 flex-shrink-0 
-                           hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
+                className="bg-white rounded-lg shadow-md overflow-hidden w-full sm:w-[45%] md:w-[30%] lg:w-[22%] mb-4 flex-shrink-0 
+                         hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                 style={{ height: "320px" }}
               >
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-2 px-4 text-center rounded-t">
-                  <h3 className="font-bold">{algo}</h3>
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-2 px-3 text-center rounded-t">
+                  <h3 className="font-bold text-sm sm:text-base truncate">{algo}</h3>
                 </div>
-                <div className="p-4 h-full">
+                <div className="p-2 sm:p-4 h-full">
                   <div className="flex justify-between mb-2">
                     <button
-                      className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
+                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
                                 transition-all duration-200 hover:translate-x-0.5"
                       onClick={() => replayAnimation(algo)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                       </svg>
                       เล่นซ้ำ
                     </button>
                     <button
-                      className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
+                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
                                 transition-all duration-200 hover:translate-x-0.5"
                       onClick={() => setZoomedChart({ name: algo, contextData: algoData.contextData })}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M5 8a1 1 0 011-1h1V6a1 1 0 012 0v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 01-1-1z" />
                         <path fillRule="evenodd" d="M2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8zm6-4a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
                       </svg>
@@ -378,12 +398,12 @@ function Resultsim() {
           <div className="flex justify-center mt-4 space-x-2">
             <button onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))} disabled={currentPage === 0}
               className={`p-2 rounded-full ${currentPage === 0 ? "bg-gray-200 cursor-not-allowed" : "bg-white shadow hover:bg-gray-100"} transition-all`}>
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
-            <div className="flex items-center px-4 font-medium">{currentPage + 1} / {totalPages}</div>
+            <div className="flex items-center px-4 text-sm sm:text-base font-medium">{currentPage + 1} / {totalPages}</div>
             <button onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))} disabled={currentPage === totalPages - 1}
               className={`p-2 rounded-full ${currentPage === totalPages - 1 ? "bg-gray-200 cursor-not-allowed" : "bg-white shadow hover:bg-gray-100"} transition-all`}>
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         )}
@@ -394,17 +414,17 @@ function Resultsim() {
   const renderSummaryTable = () => {
     if (!results) return null;
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-8">
+      <div className="bg-white rounded-lg shadow overflow-hidden mb-6 sm:mb-8 w-full mx-2 sm:mx-0">
         <div className="grid grid-cols-3 bg-blue-500 text-white">
-          <div className="py-2 px-4 text-center">Algorithm</div>
-          <div className="py-2 px-4 text-center">Average Waiting Time</div>
-          <div className="py-2 px-4 text-center">Average Turn Around Time</div>
+          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Algorithm</div>
+          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Average Waiting Time</div>
+          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Average Turn Around Time</div>
         </div>
         {algorithmResults.map((algo, idx) => (
           <div key={idx} className={`grid grid-cols-3 ${idx % 2 === 0 ? "bg-gray-100" : "bg-gray-50"} border-b`}>
-            <div className="py-2 px-4 text-center">{algo.name}</div>
-            <div className="py-2 px-4 text-center">{formatTime(algo.avgWaitingTime)}</div>
-            <div className="py-2 px-4 text-center">{formatTime(algo.avgTurnaroundTime)}</div>
+            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base truncate">{algo.name}</div>
+            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">{formatTime(algo.avgWaitingTime)}</div>
+            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">{formatTime(algo.avgTurnaroundTime)}</div>
           </div>
         ))}
       </div>
@@ -430,29 +450,29 @@ function Resultsim() {
     const processes = Array.isArray(data) ? data : Object.values(data);
 
     return (
-      <div className="mb-8 flex flex-col w-[80vw]">
-        <h2 className="flex justify-start text-lg font-semibold mb-2 ">Process Scheduling Input</h2>
+      <div className="mb-6 sm:mb-8 flex flex-col w-full md:w-[80vw] px-2 sm:px-0">
+        <h2 className="flex justify-start text-base sm:text-lg font-semibold mb-2">Process Scheduling Input</h2>
         <div className="overflow-x-auto bg-white rounded-lg shadow">
           <table className="min-w-full">
             <thead className="bg-gray-200">
               <tr>
-                <th className="py-2 px-4 text-center">Process ID</th>
-                <th className="py-2 px-4 text-center">Start Time</th>
-                <th className="py-2 px-4 text-center">Burst Time</th>
-                <th className="py-2 px-4 text-center">Priority</th>
-                <th className="py-2 px-4 text-center">Time Quantum(RR)</th>
-                <th className="py-2 px-4 text-center">Time Quantum(MLQF)</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Process ID</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Start Time</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Burst Time</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Priority</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Time Quantum(RR)</th>
+                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Time Quantum(MLQF)</th>
               </tr>
             </thead>
             <tbody>
               {processes.map((p, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="py-2 px-4 text-center">{p.id}</td>
-                  <td className="py-2 px-4 text-center">{p.startTime}</td>
-                  <td className="py-2 px-4 text-center">{p.burstTime}</td>
-                  <td className="py-2 px-4 text-center">{p.priority}</td>
-                  <td className="py-2 px-4 text-center">{p.timeQuantumRR}</td>
-                  <td className="py-2 px-4 text-center">{p.timeQuantumMLQF}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.id}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.startTime}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.burstTime}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.priority}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.timeQuantumRR}</td>
+                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.timeQuantumMLQF}</td>
                 </tr>
               ))}
             </tbody>
@@ -464,9 +484,11 @@ function Resultsim() {
 
   return (
     <div className="flex flex-col items-start w-full min-h-screen">
-      <div className="container p-6 flex flex-col items-center max-w-6xl mx-auto">
+      <div className="container p-2 sm:p-4 md:p-6 flex flex-col items-center max-w-6xl mx-auto">
         {error ? (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>
+          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded mb-4 text-sm sm:text-base">
+            {error}
+          </div>
         ) : results ? (
           <>
             {renderProcessTable()}
@@ -477,11 +499,11 @@ function Resultsim() {
             <div className="mb-4 flex justify-center">
               <button
                 className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
-                          text-white py-2 px-4 rounded-md flex items-center shadow-md hover:shadow-lg 
-                          transition-all transform hover:-translate-y-0.5"
+                          text-white py-1.5 sm:py-2 px-3 sm:px-4 rounded-md flex items-center shadow-md hover:shadow-lg 
+                          transition-all transform hover:-translate-y-0.5 text-xs sm:text-base"
                 onClick={playAgain}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                 </svg>
                 Play Again
@@ -489,9 +511,9 @@ function Resultsim() {
             </div>
           </>
         ) : (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p>Loading simulation results...</p>
+          <div className="text-center py-6 sm:py-10">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-3 sm:mb-4"></div>
+            <p className="text-sm sm:text-base">Loading simulation results...</p>
           </div>
         )}
       </div>
@@ -499,9 +521,9 @@ function Resultsim() {
       <div className="mt-auto py-2 px-4">
         <button
           onClick={() => window.history.back()}
-          className="flex text-blue-500 hover:text-blue-700 transition-colors"
+          className="flex text-blue-500 hover:text-blue-700 transition-colors items-center text-sm sm:text-base"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
           </svg>
           ย้อนกลับ

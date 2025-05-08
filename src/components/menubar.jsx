@@ -91,7 +91,7 @@ const Menubar = () => {
   }, [activeButton]);
 
   return (
-    <div className="w-full ">
+    <div className="w-full">
       <div className="flex justify-between">
         <button
           onClick={() => handleButtonClick("home", "/")}
