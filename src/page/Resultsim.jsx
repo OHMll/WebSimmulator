@@ -71,7 +71,9 @@ const renderGanttChart = (contextData, isZoomed = false) => {
   }));
 
   return (
-    <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
+    <div style={{ height: '100%', width: '100%' }}>
+      <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
+    </div>
   );
 };
 
@@ -124,32 +126,30 @@ const renderAlgorithmCards = () => {
   return (
     <div className="w-[90vw]">
       <div className="flex flex-wrap justify-center gap-[5%] w-full max-w-full mx-auto">
-        {currentAlgorithms.map((algo, idx) => {
-          const algoData = algorithmResults.find(a => a.name === algo) || {
-            name: algo,
-            contextData: results.contextData
-          };
-          return (
-            <div key={idx} className={`bg-white rounded-lg shadow-md overflow-hidden ${cardSizeClass} mb-4 flex-shrink-0`} style={{ height: "450px" }}>
-              <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t">
-                <h3 className="font-bold">{algo}</h3>
-              </div>
-              <div className="p-4 h-full">
-                <div className="flex justify-end mb-2">
+        {algorithmResults
+          .filter(a => results.algorithm.split("+").includes(a.name))
+          .slice(startIdx, endIdx)
+          .map((algoData, idx) => {
+            const algo = algoData.name;
+            return (
+              <div key={`${algo}-${idx}`} className={`bg-white rounded-lg shadow-md overflow-hidden ${cardSizeClass} mb-4 flex-shrink-0`} style={{ height: "450px" }}>
+                <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
+                  <h3 className="font-bold">{algo}</h3>
                   <button
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                    className="absolute top-2 right-2 text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center z-10"
                     onClick={() => setZoomedChart({ name: algo, contextData: algoData.contextData })}
                   >
-                    <span className="mr-1">🔍</span> Zoom Chart
+                    <span className="mr-1">🔍</span>
                   </button>
                 </div>
-                <div className="bg-gray-100 rounded shadow-inner p-2 h-[350px]">
-                  {renderGanttChart(algoData.contextData)}
+                <div className="p-4 h-full">
+                  <div className="bg-red-100 rounded shadow-inner p-2 h-[370px] overflow-hidden flex flex-col">
+                    {renderGanttChart(algoData.contextData)}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
       {totalPages > 1 && (
         <div className="flex justify-center mt-4 space-x-2">

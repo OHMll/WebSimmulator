@@ -165,7 +165,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       ctx.save();
       processIds.forEach((processId, index) => {
         const y = paddingTop + timelineHeight + index * rowHeight;
-        ctx.fillStyle = index % 2 === 0 ? '#f8f9fa' : '#ecf0f1';
+        ctx.fillStyle = index % 2 === 0 ? '#f8f9fa' : '#ecf0f2';
         ctx.fillRect(labelWidth + paddingX, y, timeScale * (maxTime + 1), rowHeight);
         ctx.fillStyle = '#2c3e50';
         ctx.textAlign = 'center';
@@ -310,7 +310,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
   };
   
   const increaseSpeed = () => {
-    setSpeed(prev => Math.min(3, prev + 0.5));
+    setSpeed(prev => Math.min(10, prev + 0.5));
   };
   
   const decreaseSpeed = () => {
@@ -321,7 +321,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
     <div className="relative w-full h-full" ref={containerRef}>
       {/* Scrollable Container - removed horizontal scroll */}
       <div 
-        className="w-full overflow-y-auto rounded border border-gray-200" // Changed to overflow-y-auto only
+        className="w-full overflow-y-auto rounded" // Changed to overflow-y-auto only
         style={{ 
           height: canvasSize.height, 
           maxHeight: canvasSize.height,
@@ -347,7 +347,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
         </button>
       </div>
       
-      <div className="absolute top-2 right-2 flex items-center bg-white p-1 rounded shadow z-10 text-xs">
+      <div className="absolute bottom-2 right-2 flex items-center bg-white p-1 rounded shadow z-10 text-xs">
         <span className="mr-1">Speed:</span>
         <button
           onClick={decreaseSpeed}
