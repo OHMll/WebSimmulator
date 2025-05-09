@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Elephant from "../img/elephants-nature.jpg";
@@ -27,9 +29,24 @@ function Home() {
   // ส่วนของ IconSlider
   const IconSlider = () => {
     const images = [
-      <img src={Elephant} alt="Elephant" />,
-      <img src={Cat1} alt="Cat1" />,
-      <img src={Cat2} alt="Cat2" />,
+      <img
+        key="elephant"
+        src={Elephant || "/placeholder.svg"}
+        alt="Elephant"
+        className="w-full h-full object-cover rounded-lg"
+      />,
+      <img
+        key="cat1"
+        src={Cat1 || "/placeholder.svg"}
+        alt="Cat1"
+        className="w-full h-full object-cover rounded-lg"
+      />,
+      <img
+        key="cat2"
+        src={Cat2 || "/placeholder.svg"}
+        alt="Cat2"
+        className="w-full h-full object-cover rounded-lg"
+      />,
     ];
 
     const [currentIconIndex, setCurrentIconIndex] = useState(0);
@@ -43,7 +60,7 @@ function Home() {
     }, []);
 
     return (
-      <div className="relative w-full h-full flex justify-center items-center overflow-hidden z-10">
+      <div className="relative w-full h-full flex justify-center items-center overflow-hidden z-10 rounded-lg">
         {/* เลื่อนภาพจากซ้ายไปขวา */}
         <div
           className="absolute w-full h-full flex transition-transform duration-1000"
@@ -64,7 +81,9 @@ function Home() {
           {images.map((_, index) => (
             <div
               key={index}
-              className={`w-3 h-3 mx-1 rounded-full cursor-pointer ${index === currentIconIndex ? "bg-blue-500" : "bg-gray-400"}`}
+              className={`w-2 h-2 md:w-3 md:h-3 mx-1 rounded-full cursor-pointer ${
+                index === currentIconIndex ? "bg-blue-500" : "bg-gray-400"
+              }`}
               onClick={() => setCurrentIconIndex(index)} // เมื่อคลิกจะเปลี่ยนไปที่ไอคอนที่ตรงกับตำแหน่ง
             />
           ))}
@@ -74,32 +93,39 @@ function Home() {
   };
 
   return (
-    <div className="mt-5 pt-5 ml-5 mr-5 relative">
-      <h1 className="text-[26pt] font-bold flex justify-center z-30">Welcome to Website For Process Scheduling</h1>
+    <div className="container mx-auto mt-2 md:mt-5 pt-2 md:pt-5 px-4 md:px-5 lg:px-8 relative max-w-7xl">
+      <h1 className="text-xl md:text-2xl lg:text-[26pt] font-bold text-center z-30 mb-4 md:mb-6">
+        Welcome to Website For Process Scheduling
+      </h1>
 
-      <div className="mt-5 h-[50vh] flex justify-between items-center z-30">
-        <div className="w-[50%] h-[100%] rounded-[1rem] bg-[#FFFFFF] flex flex-col p-8 justify-around">
-          <p className="text-[24pt] transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500">
-            Step 1 : Choose Process Schedule
-          </p>
-          <p className="text-[24pt] transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500">
-            Step 2 : Setting Parameters
-          </p>
-          <p className="text-[24pt] transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500">
-            Step 3 : Press Start Button to Simulate
-          </p>
+      {/* ส่วนหลักของเนื้อหา - ปรับตัวตามขนาดหน้าจอ */}
+      <div className="mt-4 md:mt-5 flex flex-col-reverse lg:flex-row lg:justify-between lg:items-stretch z-30 gap-6">
+        {/* Steps Box - เต็มความกว้างบนมือถือ แต่ 50% บนจอใหญ่ */}
+        <div className="w-full lg:w-[48%] h-auto rounded-[1rem] bg-[#FFFFFF] shadow-md flex flex-col p-4 md:p-6 lg:p-8 justify-center">         
+          <div className="space-y-4 md:space-y-6 lg:space-y-8">
+            <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">
+              <span>Step 1 : Choose Process Schedule</span>
+            </p>
+            <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">
+              <span>Step 2 : Setting Parameters</span>
+            </p>
+            <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">              
+              <span>Step 3 : Press Start Button to Simulate</span>
+            </p>
+          </div>
         </div>
 
-        {/* ใส่ IconSlider ลงใน div นี้ */}
-        <div className="w-[50%] h-[100%] relative z-10">
+        {/* Image Slider - เต็มความกว้างบนมือถือ แต่ 50% บนจอใหญ่ */}
+        <div className="w-full lg:w-[48%] h-[30vh] md:h-[40vh] lg:h-[50vh] relative z-10 mb-4 lg:mb-0">
           <IconSlider />
         </div>
       </div>
 
-      <div className="mt-10 h-[6vh] flex justify-center">
+      {/* ปุ่ม Try Now! - ปรับขนาดตามหน้าจอ */}
+      <div className="my-6 md:my-10 flex justify-center">
         <button
           onClick={() => handleButtonClick("processScheduling", "/simulator")}
-          className="transition ease-in-out delay-170 bg-[#004BA5] hover:-translate-y-1 hover:scale-110 hover:bg-blue-700 duration-300 w-[15%] h-[100%] font-bold text-[15pt] rounded-md text-white z-20"
+          className="transition ease-in-out delay-170 bg-[#004BA5] hover:-translate-y-1 hover:scale-110 hover:bg-blue-700 duration-300 w-[80%] sm:w-[60%] md:w-[40%] lg:w-[20%] py-3 md:py-4 font-bold text-base md:text-lg lg:text-xl rounded-md text-white z-20 shadow-lg"
         >
           Try Now!
         </button>
