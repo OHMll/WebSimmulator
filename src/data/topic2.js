@@ -175,13 +175,13 @@ const topics = [
         `
     }
     ,
-    {
-      id: 5,
-      color: "#55A972",
-      title: "Memory Management",
-      description: "Covers memory allocation, partitioning, address translation, segmentation, paging, and page table structures in operating systems.",
-      content: `
-  Key Responsibilities of Memory Management:
+     {
+    id: 5,
+    color: "#55A972",
+    title: "Memory Management",
+    description: "Covers memory allocation, partitioning, address translation, segmentation, paging, and page table structures in operating systems.",
+    content: `
+Key Responsibilities of Memory Management:
     Allocating memory when processes are created and deallocating it after use
     Keeping track of used and free memory using data structures like memory maps and free lists
     Protecting memory access to prevent unauthorized access between processes
@@ -235,9 +235,8 @@ const topics = [
     Intel x86 (IA-32): Uses both segmentation and paging, supports 4 KB and 4 MB pages
     ARM (e.g., ARMv8-A): Supports multi-level paging (up to 4 levels) with TLBs for both code and data
     Linux: Uses 4-level paging for 64-bit systems
-        
-        `
-    }
+          `
+  }
     ,
     {
       id: 6,

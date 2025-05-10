@@ -15,26 +15,30 @@ function Overview() {
     };
 
     return (
-        <div className="bg-[#3F72AF] h-full w-full">
-            <div className="flex flex-col items-center overscroll-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-6xl mt-5">
+        <div
+            className="bg-[#3F72AF] min-h-[calc(100vh-6.79rem)] w-full overflow-hidden relative " >
+            <div className="flex flex-col items-center px-4 py-6  ">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl">
                     {topics.map((topic) => (
                         <div
                             key={topic.id}
-                            className="bg-[#1A3049] rounded-lg shadow-md flex flex-col items-center justify-start h-32 w-full border-2 border-transparent hover:border-white transition duration-300 cursor-pointer"
+                            className="bg-[#1A3049] rounded-lg shadow-md flex flex-col items-center justify-start min-h-[8rem] w-full border-2 border-transparent hover:border-white hover:scale-[1.02] transition-all duration-300 cursor-pointer"
                             onClick={() => openModal(topic)}
                         >
                             {/* กล่องสี (Title) → ติดขอบบน ใช้สีจากข้อมูล */}
                             <div
-                                className="top-0 rounded-lg w-3/4 flex justify-center items-center p-3"
+                                className="rounded-lg w-3/4 flex justify-center items-center p-3 "
                                 style={{ backgroundColor: topic.color }}
                             >
-                                <div className="text-xl font-bold text-black">{topic.title}</div>
+                                <div className="text-xl font-bold text-white text-center">
+                                    {topic.title}
+                                </div>
                             </div>
 
-
                             {/* คำอธิบาย (อยู่ข้างล่าง) */}
-                            <p className="text-sm text-gray-300 text-center mt-2">{topic.description}</p>
+                            <p className="text-sm text-gray-300 text-center mt-2 px-2">
+                                {topic.description}
+                            </p>
                         </div>
                     ))}
                 </div>
@@ -46,6 +50,7 @@ function Overview() {
                         title={selectedContent.title}
                         content={selectedContent.content}
                         onClose={closeModal}
+                         color={selectedContent.color}
                     />
                 )}
             </div>
