@@ -1,45 +1,19 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import GanttChart2D from "../components/GanttChart2D";
 
 function Resultsim() {
-  // เพิ่ม CSS Animation เพื่อรองรับ fadeIn
-  React.useEffect(() => {
-    // เพิ่ม style element เข้าใน document
-    const styleEl = document.createElement('style');
-    styleEl.innerHTML = `
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .animate-fadeIn {
-        animation: fadeIn 0.3s ease-out forwards;
-      }
-    `;
-    document.head.appendChild(styleEl);
-    
-    // Cleanup
-    return () => {
-      document.head.removeChild(styleEl);
-    };
-  }, []);
-
+  const navigate = useNavigate();
   const [results, setResults] = useState(null);
   const [processList, setProcessList] = useState([]);
+  const [processIdCounter, setProcessIdCounter] = useState(1);
+  const [selectedAlgorithms, setSelectedAlgorithms] = useState([]);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [algorithmResults, setAlgorithmResults] = useState([]);
   const [zoomedChart, setZoomedChart] = useState(null);
   const cardsPerPage = 4;
-  
-  // Changed animation state tracking
-  const [animations, setAnimations] = useState({});
-  const animationTimersRef = useRef({});
 
   useEffect(() => {
     const storedResults = localStorage.getItem("simulationResults");
@@ -50,15 +24,20 @@ function Resultsim() {
         const parsedResults = JSON.parse(storedResults);
         setResults(parsedResults);
 
-        if (parsedResults.algorithmData && Array.isArray(parsedResults.algorithmData)) {
+        if (
+          parsedResults.algorithmData &&
+          Array.isArray(parsedResults.algorithmData)
+        ) {
           setAlgorithmResults(parsedResults.algorithmData);
         } else {
-          const extractedResults = parsedResults.algorithm.split("+").map(algo => ({
-            name: algo,
-            avgWaitingTime: parsedResults.avgWaitingTime,
-            avgTurnaroundTime: parsedResults.avgTurnaroundTime,
-            contextData: parsedResults.contextData,
-          }));
+          const extractedResults = parsedResults.algorithm
+            .split("+")
+            .map((algo) => ({
+              name: algo,
+              avgWaitingTime: parsedResults.avgWaitingTime,
+              avgTurnaroundTime: parsedResults.avgTurnaroundTime,
+              contextData: parsedResults.contextData,
+            }));
           setAlgorithmResults(extractedResults);
         }
       } catch (err) {
@@ -77,206 +56,26 @@ function Resultsim() {
     }
   }, []);
 
-  // Initialize animations when algorithm results change
-  useEffect(() => {
-    if (algorithmResults.length > 0) {
-      // Create initial animation state for all algorithms
-      const initialAnimations = {};
-      algorithmResults.forEach(algo => {
-        initialAnimations[algo.name] = false;
-      });
-      setAnimations(initialAnimations);
-      
-      // Schedule initial animations with staggered delays
-      algorithmResults.forEach((algo, index) => {
-        const timerId = setTimeout(() => {
-          setAnimations(prev => ({ ...prev, [algo.name]: true }));
-        }, 500 + (index * 200)); // Increased delay - slower initial animation
-        
-        // Store timer ID for cleanup
-        animationTimersRef.current[algo.name] = timerId;
-      });
-    }
-    
-    // Cleanup function to clear any pending animation timers
-    return () => {
-      Object.values(animationTimersRef.current).forEach(timerId => {
-        clearTimeout(timerId);
-      });
-    };
-  }, [algorithmResults]);
-  
-  // Handle zoom animation
-  useEffect(() => {
-    if (zoomedChart) {
-      const { name } = zoomedChart;
-      // Clear any existing animation timer
-      if (animationTimersRef.current[name]) {
-        clearTimeout(animationTimersRef.current[name]);
-      }
-      
-      // Reset and restart animation for zoomed chart
-      setAnimations(prev => ({ ...prev, [name]: false }));
-      
-      // Trigger animation after a short delay
-      const timerId = setTimeout(() => {
-        setAnimations(prev => ({ ...prev, [name]: true }));
-      }, 300);
-      
-      // Store the timer ID
-      animationTimersRef.current[name] = timerId;
-    }
-  }, [zoomedChart]);
-
   const formatTime = (time) => parseFloat(time).toFixed(1);
-  const playAgain = () => window.location.href = "/simulator";
-  
-  // Improved replay animation function with guaranteed refresh and slow animation
-  const replayAnimation = (algoName) => {
-    // Clear any existing animation timer
-    if (animationTimersRef.current[algoName]) {
-      clearTimeout(animationTimersRef.current[algoName]);
-    }
-    
-    // Force state update to reset animation
-    setAnimations(prev => ({ ...prev, [algoName]: false }));
-    
-    // Schedule animation restart with a longer delay for more visible effect
-    const timerId = setTimeout(() => {
-      setAnimations(prev => ({ ...prev, [algoName]: true }));
-    }, 300); // Increased delay for more noticeable effect when clicking replay
-    
-    // Store the timer ID
-    animationTimersRef.current[algoName] = timerId;
+
+  const goToSimulator = () => {
+    navigate("/simulator");
   };
 
-  const renderGanttChart = (contextData, algoName) => {
+  const renderGanttChart = (contextData, isZoomed = false) => {
     if (!contextData || contextData.length === 0) {
       return <div className="text-gray-500">ไม่มีข้อมูล Gantt Chart</div>;
     }
 
-    const maxTime = Math.max(...contextData.map(p => p.start + p.duration));
-    const timeUnitWidth = 30;
-    const totalWidth = (Math.ceil(maxTime) + 1) * timeUnitWidth;
-
-    const grouped = contextData.reduce((acc, p) => {
-      if (!acc[p.pid]) acc[p.pid] = [];
-      acc[p.pid].push(p);
-      return acc;
-    }, {});
-    const sortedPids = Object.keys(grouped).sort((a, b) => parseInt(a) - parseInt(b));
-
-    // Enhanced color and gradient options
-    const gradients = [
-      "bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500",
-      "bg-gradient-to-r from-green-500 to-emerald-400 hover:from-green-600 hover:to-emerald-500",
-      "bg-gradient-to-r from-purple-500 to-pink-400 hover:from-purple-600 hover:to-pink-500",
-      "bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500",
-      "bg-gradient-to-r from-red-500 to-pink-400 hover:from-red-600 hover:to-pink-500",
-      "bg-gradient-to-r from-indigo-500 to-blue-400 hover:from-indigo-600 hover:to-blue-500", 
-      "bg-gradient-to-r from-teal-400 to-cyan-400 hover:from-teal-500 hover:to-cyan-500",
-      "bg-gradient-to-br from-fuchsia-500 to-purple-500 hover:from-fuchsia-600 hover:to-purple-600",
-      "bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-500 hover:to-yellow-400",
-      "bg-gradient-to-r from-rose-400 to-red-400 hover:from-rose-500 hover:to-red-500",
-    ];
-
-    const processHeight = sortedPids.length > 5 ? 22 : 26;
-    const timelineHeight = 20;
-    const padding = 10;
-    const contentHeight = sortedPids.length * processHeight + timelineHeight + padding;
-    const fixedHeight = 220;
-
-    // Get animation state for this chart
-    const isAnimating = animations[algoName] || false;
+    const scheduleData = contextData.map((item) => ({
+      startTime: item.start,
+      duration: item.duration,
+      processId: item.pid,
+    }));
 
     return (
-      <div className="relative w-full h-full border rounded-lg bg-gray-50 shadow-inner">
-        <div className="overflow-x-auto overflow-y-auto" style={{ height: `${fixedHeight}px` }}>
-          <div
-            className="min-w-max"
-            style={{ width: `${totalWidth + 70}px`, minHeight: `${contentHeight}px`, paddingBottom: "15px" }}
-          >
-            <div className="mt-2">
-              {sortedPids.map((pid, idx) => {
-                const gradient = gradients[idx % gradients.length];
-                return (
-                  <div key={pid} className="flex items-center mb-1" style={{ height: `${processHeight}px` }}>
-                    <span className="w-12 text-xs font-medium mr-2 text-right text-gray-700 flex-shrink-0">P{pid}</span>
-                    <div className="relative flex-1" style={{ height: `${processHeight - 6}px` }}>
-                      {grouped[pid].map((p, i) => {
-                        // Calculate animation delays based on process start time and index
-                        // Slowed down animation by increasing delay multipliers
-                        const animDelay = p.start * 0.2 + (i * 0.1);
-                        const duration = Math.max(p.duration * timeUnitWidth, 10);
-                        
-                        return (
-                          <div
-                            key={i}
-                            className={`absolute ${gradient} text-white text-xs flex items-center justify-center 
-                                      rounded-md transition-all duration-1000 ease-out select-none`}
-                            style={{
-                              left: `${p.start * timeUnitWidth}px`,
-                              width: isAnimating ? `${duration}px` : "0px",
-                              height: `${processHeight - 6}px`,
-                              fontSize: sortedPids.length > 5 ? '0.65rem' : '0.75rem',
-                              opacity: isAnimating ? 1 : 0,
-                              transitionDelay: `${animDelay}s`,
-                              transform: isAnimating ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.95)',
-                              border: '1px solid rgba(255,255,255,0.3)',
-                              boxShadow: '0 3px 6px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)',
-                              overflow: 'hidden',
-                              zIndex: 10 - (p.start * 0.1) // Stack earlier processes on top
-                            }}
-                            title={`P${pid}: Start=${p.start}, Duration=${p.duration}`}
-                          >
-                            {p.duration >= 0.8 ? `P${pid}` : ""}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="relative mt-2 ml-14 mr-4" style={{ height: `${timelineHeight}px` }}>
-              {/* Create a fancy timeline with animated appearance - slower animation */}
-              <div 
-                className="border-t border-gray-300 w-full absolute top-0 transition-all duration-1500" 
-                style={{
-                  width: isAnimating ? '100%' : '0%',
-                  opacity: isAnimating ? 1 : 0,
-                  transitionDelay: '0.5s'
-                }}
-              />
-              {Array.from({ length: Math.ceil(maxTime) + 1 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute top-0 transition-all duration-1000"
-                  style={{ 
-                    left: `${i * timeUnitWidth}px`,
-                    height: isAnimating ? '8px' : '0px',
-                    width: '1px', 
-                    backgroundColor: '#CBD5E0',
-                    opacity: isAnimating ? 1 : 0,
-                    transitionDelay: `${0.6 + (i * 0.12)}s` // Slowed down by increasing delay
-                  }}
-                >
-                  <div 
-                    className="absolute -left-3 top-3 text-xs text-gray-600 transition-all duration-800"
-                    style={{
-                      opacity: isAnimating ? 1 : 0,
-                      transform: isAnimating ? 'translateY(0)' : 'translateY(-5px)',
-                      transitionDelay: `${0.8 + (i * 0.12)}s` // Slowed down by increasing delay
-                    }}
-                  >
-                    {i}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div style={{ height: "100%", width: "100%" }}>
+        <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
       </div>
     );
   };
@@ -287,54 +86,31 @@ function Resultsim() {
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-2 sm:p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
         onClick={() => setZoomedChart(null)}
       >
         <div
-          className="bg-white rounded-lg shadow-2xl p-3 sm:p-6 max-w-5xl w-full relative animate-fadeIn"
+          className="bg-white rounded-lg shadow-xl p-6 max-w-5xl w-full h-[90vh] relative"
           onClick={(e) => e.stopPropagation()}
-          style={{
-            animation: 'fadeIn 0.3s ease-out',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}
         >
-          <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 flex flex-wrap items-center">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">{name}</span>
-            <span className="mx-2 text-gray-500">-</span>
-            <span className="text-gray-700">Gantt Chart</span>
-            
-            <button
-              className="mt-2 sm:mt-0 ml-0 sm:ml-4 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 
-                        text-white py-1 px-3 sm:px-4 rounded-md text-xs sm:text-sm flex items-center transition-all shadow-md
-                        hover:shadow-lg transform hover:translate-y-px active:translate-y-0.5"
-              onClick={(e) => {
-                e.stopPropagation();
-                replayAnimation(name);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-              </svg>
-              <span className="whitespace-nowrap">เล่นแอนิเมชันซ้ำ</span>
-            </button>
+          <h2 className="text-xl font-bold mb-4">
+            {name} - Gantt Chart (Zoomed)
           </h2>
-          <div className="max-h-[60vh] sm:max-h-[70vh] overflow-auto border border-gray-200 p-2 sm:p-4 rounded-lg bg-gray-50 shadow-inner">
-            {renderGanttChart(contextData, name)}
+          <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
+            {renderGanttChart(contextData, true)}
           </div>
           <button
             onClick={() => setZoomedChart(null)}
-            className="absolute top-2 sm:top-3 right-2 sm:right-3 text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-full transition-all"
-            aria-label="ปิด"
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
+            ✖
           </button>
         </div>
       </div>
     );
   };
 
+  // Updated to make the algorithm cards responsive with correct desktop layout
   const renderAlgorithmCards = () => {
     if (!results) return null;
 
@@ -342,68 +118,120 @@ function Resultsim() {
     const totalPages = Math.ceil(algorithms.length / cardsPerPage);
     const startIdx = currentPage * cardsPerPage;
     const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
-    const currentAlgorithms = algorithms.slice(startIdx, endIdx);
+    const currentAlgorithms = algorithmResults
+      .filter((a) => results.algorithm.split("+").includes(a.name))
+      .slice(startIdx, endIdx);
 
+    // For mobile: 2x2 grid (2 columns, 2 rows)
+    // For desktop: Full width cards in separate containers as shown in image
     return (
-      <div className="w-full px-2 sm:px-4 md:w-[90vw]">
-        <div className="flex flex-wrap justify-center gap-4 w-full max-w-full mx-auto">
-          {currentAlgorithms.map((algo, idx) => {
-            const algoData = algorithmResults.find(a => a.name === algo) || {
-              name: algo,
-              contextData: results.contextData
-            };
+      <div className="w-full md:w-[90vw]">
+        {/* Mobile view - 2x2 grid */}
+        <div className="flex flex-wrap justify-center gap-[2%] md:hidden w-full max-w-full mx-auto">
+          {currentAlgorithms.map((algoData, idx) => {
+            const algo = algoData.name;
             return (
-              <div 
-                key={idx} 
-                className="bg-white rounded-lg shadow-md overflow-hidden w-full sm:w-[45%] md:w-[30%] lg:w-[22%] mb-4 flex-shrink-0 
-                         hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-                style={{ height: "320px" }}
+              <div
+                key={`mobile-${algo}-${idx}`}
+                className="bg-white rounded-lg shadow-md overflow-hidden w-[48%] mb-4 flex-shrink-0"
+                style={{ height: "280px", minHeight: "280px" }}
               >
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-2 px-3 text-center rounded-t">
-                  <h3 className="font-bold text-sm sm:text-base truncate">{algo}</h3>
+                <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
+                  <h3 className="font-bold text-xs">{algo}</h3>
+                  <button
+                    className="absolute top-2 right-2 text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center z-10"
+                    onClick={() =>
+                      setZoomedChart({
+                        name: algo,
+                        contextData: algoData.contextData,
+                      })
+                    }
+                  >
+                    <span className="mr-1">🔍</span>
+                  </button>
                 </div>
-                <div className="p-2 sm:p-4 h-full">
-                  <div className="flex justify-between mb-2">
-                    <button
-                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
-                                transition-all duration-200 hover:translate-x-0.5"
-                      onClick={() => replayAnimation(algo)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                      </svg>
-                      เล่นซ้ำ
-                    </button>
-                    <button
-                      className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 hover:underline flex items-center
-                                transition-all duration-200 hover:translate-x-0.5"
-                      onClick={() => setZoomedChart({ name: algo, contextData: algoData.contextData })}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M5 8a1 1 0 011-1h1V6a1 1 0 012 0v1h1a1 1 0 110 2H9v1a1 1 0 11-2 0V9H6a1 1 0 01-1-1z" />
-                        <path fillRule="evenodd" d="M2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8zm6-4a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
-                      </svg>
-                      ขยาย
-                    </button>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-2 h-[220px] border border-gray-200 shadow-inner">
-                    {renderGanttChart(algoData.contextData, algo)}
+                <div className="p-2 h-full">
+                  <div className="bg-red-100 rounded shadow-inner p-1 h-[220px] overflow-hidden flex flex-col">
+                    {renderGanttChart(algoData.contextData)}
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4 space-x-2">
-            <button onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))} disabled={currentPage === 0}
-              className={`p-2 rounded-full ${currentPage === 0 ? "bg-gray-200 cursor-not-allowed" : "bg-white shadow hover:bg-gray-100"} transition-all`}>
-              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+
+        {/* Desktop view - cards as shown in image */}
+        <div
+          className={`hidden md:grid w-full max-w-full mx-auto justify-items-center gap-6`}
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(currentAlgorithms.length, 4)}, minmax(0, 1fr))`
+          }}
+        >
+          {currentAlgorithms.map((algoData, idx) => {
+            const algo = algoData.name;
+            // ปรับขนาดการ์ดตามจำนวน
+            let cardWidth = "w-full";
+            if (currentAlgorithms.length === 1) cardWidth = "w-[60%]";
+            if (currentAlgorithms.length === 2) cardWidth = "w-[70%]";
+            if (currentAlgorithms.length === 3) cardWidth = "w-[85%]";
+            // 4 ขึ้นไป w-full
+
+            return (
+              <div
+                key={`desktop-${algo}-${idx}`}
+                className={`bg-white rounded-lg shadow-md overflow-hidden mb-4 ${cardWidth}`}
+              >
+                <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
+                  <h3 className="font-bold text-base">{algo}</h3>
+                  <button
+                    className="absolute top-2 right-2 text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center z-10"
+                    onClick={() =>
+                      setZoomedChart({
+                        name: algo,
+                        contextData: algoData.contextData,
+                      })
+                    }
+                  >
+                    <span className="mr-1">🔍</span>
+                  </button>
+                </div>
+                <div className="p-4">
+                  <div className="bg-red-100 rounded shadow-inner p-2 h-[370px] overflow-hidden flex flex-col">
+                    {renderGanttChart(algoData.contextData)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {algorithmResults.filter((a) => results.algorithm.split("+").includes(a.name)).length > cardsPerPage && (
+          <div className="flex justify-center mt-2 mb-2 md:mt-4 space-x-2 text-[12px] md:text-base">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
+              disabled={currentPage === 0}
+              className={`p-1.5 md:p-2 rounded-full ${
+                currentPage === 0
+                  ? "bg-gray-200 cursor-not-allowed"
+                  : "bg-white shadow hover:bg-gray-100"
+              }`}
+            >
+              <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
             </button>
-            <div className="flex items-center px-4 text-sm sm:text-base font-medium">{currentPage + 1} / {totalPages}</div>
-            <button onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))} disabled={currentPage === totalPages - 1}
-              className={`p-2 rounded-full ${currentPage === totalPages - 1 ? "bg-gray-200 cursor-not-allowed" : "bg-white shadow hover:bg-gray-100"} transition-all`}>
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="flex items-center px-2 md:px-4 font-medium">
+              {currentPage + 1} / {totalPages}
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1))
+              }
+              disabled={currentPage === totalPages - 1}
+              className={`p-1.5 md:p-2 rounded-full ${
+                currentPage === totalPages - 1
+                  ? "bg-gray-200 cursor-not-allowed"
+                  : "bg-white shadow hover:bg-gray-100"
+              }`}
+            >
+              <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
             </button>
           </div>
         )}
@@ -413,18 +241,32 @@ function Resultsim() {
 
   const renderSummaryTable = () => {
     if (!results) return null;
+
+    const sortedResults = [...algorithmResults].sort(
+      (a, b) => parseFloat(a.avgWaitingTime) - parseFloat(b.avgWaitingTime)
+    );
+
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden mb-6 sm:mb-8 w-full mx-2 sm:mx-0">
+      <div className="w-full max-w-[98vw] mx-auto bg-white rounded-lg shadow overflow-hidden mb-8 text-[10px] md:text-base">
         <div className="grid grid-cols-3 bg-blue-500 text-white">
-          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Algorithm</div>
-          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Average Waiting Time</div>
-          <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">Average Turn Around Time</div>
+          <div className="py-2 px-4 text-center">Algorithm</div>
+          <div className="py-2 px-4 text-center">Average Waiting Time</div>
+          <div className="py-2 px-4 text-center">Average Turn Around Time</div>
         </div>
-        {algorithmResults.map((algo, idx) => (
-          <div key={idx} className={`grid grid-cols-3 ${idx % 2 === 0 ? "bg-gray-100" : "bg-gray-50"} border-b`}>
-            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base truncate">{algo.name}</div>
-            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">{formatTime(algo.avgWaitingTime)}</div>
-            <div className="py-1 sm:py-2 px-1 sm:px-4 text-center text-xs sm:text-base">{formatTime(algo.avgTurnaroundTime)}</div>
+        {sortedResults.map((algo, idx) => (
+          <div
+            key={idx}
+            className={`grid grid-cols-3 ${
+              idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+            } border-b`}
+          >
+            <div className="py-2 px-4 text-center font-medium">{algo.name}</div>
+            <div className="py-2 px-4 text-center">
+              {formatTime(algo.avgWaitingTime)}
+            </div>
+            <div className="py-2 px-4 text-center">
+              {formatTime(algo.avgTurnaroundTime)}
+            </div>
           </div>
         ))}
       </div>
@@ -432,47 +274,55 @@ function Resultsim() {
   };
 
   const renderProcessTable = () => {
-    const data = processList.length > 0 ? processList : results?.contextData?.reduce((acc, item) => {
-      if (!acc[item.pid]) {
-        acc[item.pid] = {
-          id: item.pid,
-          startTime: item.originalStartTime || 0,
-          burstTime: item.originalBurstTime || 0,
-          priority: item.priority || 0,
-          timeQuantumRR: "-",
-          timeQuantumMLQF: "-"
-        };
-      }
-      return acc;
-    }, {});
+    const data =
+      processList.length > 0
+        ? processList
+        : results?.contextData?.reduce((acc, item) => {
+            if (!acc[item.pid]) {
+              acc[item.pid] = {
+                id: item.pid,
+                startTime: item.originalStartTime || 0,
+                burstTime: item.originalBurstTime || 0,
+                priority: item.priority || 0,
+                timeQuantumRR: "-",
+                timeQuantumMLQF: "-",
+              };
+            }
+            return acc;
+          }, {});
     if (!data || Object.keys(data).length === 0) return null;
 
     const processes = Array.isArray(data) ? data : Object.values(data);
 
     return (
-      <div className="mb-6 sm:mb-8 flex flex-col w-full md:w-[80vw] px-2 sm:px-0">
-        <h2 className="flex justify-start text-base sm:text-lg font-semibold mb-2">Process Scheduling Input</h2>
-        <div className="overflow-x-auto bg-white rounded-lg shadow">
-          <table className="min-w-full">
-            <thead className="bg-gray-200">
+      <div className="mb-8 flex flex-col w-full md:w-[70vw]">
+        <h2 className="flex justify-start text-sm md:text-lg font-semibold mb-2">
+          Process Scheduling Input
+        </h2>
+        <div
+          className="overflow-x-auto bg-white rounded-lg shadow w-full"
+          style={{ maxHeight: "400px", overflowY: "auto" }}
+        >
+          <table className="min-w-full text-[10px] md:text-base">
+            <thead className="bg-gray-200 sticky top-0 z-10">
               <tr>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Process ID</th>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Start Time</th>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Burst Time</th>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Priority</th>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Time Quantum(RR)</th>
-                <th className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">Time Quantum(MLQF)</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Process ID</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Start Time</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Burst Time</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Priority</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Time Quantum(RR)</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">Time Quantum(MLQF)</th>
               </tr>
             </thead>
             <tbody>
               {processes.map((p, idx) => (
                 <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.id}</td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.startTime}</td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.burstTime}</td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.priority}</td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.timeQuantumRR}</td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 text-center text-xs sm:text-sm">{p.timeQuantumMLQF}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.id}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.startTime}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.burstTime}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.priority}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.timeQuantumRR}</td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.timeQuantumMLQF}</td>
                 </tr>
               ))}
             </tbody>
@@ -482,12 +332,46 @@ function Resultsim() {
     );
   };
 
+  const removeProcess = (id) => {
+    const newList = processList.filter((p) => p.id !== id);
+    setProcessList(newList);
+
+    if (newList.length === 0) {
+      setProcessIdCounter(1);
+    }
+  };
+
+  const addProcess = (process) => {
+    setProcessList([
+      ...processList,
+      { ...process, id: processIdCounter.toString().padStart(3, "0") },
+    ]);
+    setProcessIdCounter(processIdCounter + 1);
+  };
+
+  const resetProcessList = () => {
+    setProcessList([]);
+    setProcessIdCounter(1);
+    setSelectedAlgorithms([]);
+  };
+
   return (
-    <div className="flex flex-col items-start w-full min-h-screen">
-      <div className="container p-2 sm:p-4 md:p-6 flex flex-col items-center max-w-6xl mx-auto">
+    <div className="flex flex-col items-start w-full min-h-screen pb-16">
+      <div className="container p-2 md:p-6 pt-6 md:pt-16 flex flex-col items-center max-w-6xl mx-auto">
+        <h1 className="text-lg md:text-2xl font-bold mb-6 w-full text-center bg-gray-100 py-3 rounded-lg shadow-sm">
+          Process Scheduling Results
+        </h1>
+
         {error ? (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded mb-4 text-sm sm:text-base">
-            {error}
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex flex-col items-center">
+            <p>{error}</p>
+            <button
+              className="mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center"
+              onClick={goToSimulator}
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              กลับไปหน้า Simulator
+            </button>
           </div>
         ) : results ? (
           <>
@@ -495,39 +379,25 @@ function Resultsim() {
             {renderAlgorithmCards()}
             {renderSummaryTable()}
             {renderZoomModal()}
-
-            <div className="mb-4 flex justify-center">
-              <button
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 
-                          text-white py-1.5 sm:py-2 px-3 sm:px-4 rounded-md flex items-center shadow-md hover:shadow-lg 
-                          transition-all transform hover:-translate-y-0.5 text-xs sm:text-base"
-                onClick={playAgain}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                </svg>
-                Play Again
-              </button>
-            </div>
           </>
         ) : (
-          <div className="text-center py-6 sm:py-10">
-            <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-3 sm:mb-4"></div>
-            <p className="text-sm sm:text-base">Loading simulation results...</p>
+          <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p>Loading simulation results...</p>
           </div>
         )}
       </div>
 
-      <div className="mt-auto py-2 px-4">
-        <button
-          onClick={() => window.history.back()}
-          className="flex text-blue-500 hover:text-blue-700 transition-colors items-center text-sm sm:text-base"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-          </svg>
-          ย้อนกลับ
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-90 shadow-md py-3 z-20">
+        <div className="container mx-auto flex justify-between items-center px-6">
+          <button
+            onClick={goToSimulator}
+            className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            Back to Simulator
+          </button>
+        </div>
       </div>
     </div>
   );
