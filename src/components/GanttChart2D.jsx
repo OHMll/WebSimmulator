@@ -335,19 +335,19 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       <div className="absolute top-2 left-2 flex items-center space-x-2 z-10">
         <button
           onClick={togglePlayPause}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded shadow text-xs"
+          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded shadow text-[10px] md:text-xs"
         >
           {isPlaying ? 'Pause' : 'Play'}
         </button>
         <button
           onClick={stopAnimation}
-          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded shadow text-xs"
+          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded shadow text-[10px] md:text-xs"
         >
           Stop Animation
         </button>
       </div>
       
-      <div className="absolute bottom-2 right-2 flex items-center bg-white p-1 rounded shadow z-10 text-xs">
+      <div className="absolute bottom-2 right-2 flex items-center bg-white p-1 rounded shadow z-10 text-[10px] md:text-xs">
         <span className="mr-1">Speed:</span>
         <button
           onClick={decreaseSpeed}

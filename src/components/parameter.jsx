@@ -175,7 +175,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       burstTime: inputValues.burstTime,
       priority: inputValues.priority,
       timeQuantumRR: showRoundRobin ? inputValues.timeQuantumRR : "-",
-      timeQuantumMLQF: showMLQF ? inputValues.second || "2" : "-",
+      timeQuantumMLQF: showMLQF ? `${inputValues.first || "1"},${inputValues.second || "2"},${inputValues.third || "3"}` : "-",
     };
 
     // เพิ่ม process ใหม่เข้าไปใน list
@@ -223,11 +223,9 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }
     let startId = processList.length === 0 ? 1 : processIdCounter;
 
-    // สุ่มค่า Time Quantum RR และ MLQF แค่ครั้งแรก
-    if (rrQuantumRef.current === null) {
+    // สุ่มค่า Time Quantum RR และ MLQF เฉพาะเมื่อไม่มี Process อยู่แล้ว
+    if (processList.length === 0) {
       rrQuantumRef.current = Math.floor(Math.random() * 10) + 1;
-    }
-    if (mlqfQuantumRef.current === null) {
       const randomFirst = Math.floor(Math.random() * 5) + 1;
       const randomSecond = Math.floor(Math.random() * 5) + 1;
       const randomThird = Math.floor(Math.random() * 5) + 1;
