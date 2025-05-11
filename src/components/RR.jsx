@@ -1,4 +1,5 @@
 export default function RR(input, timeQuantum = 3) {
+  // คัดลอกข้อมูลจาก input เพื่อลดการแก้ไขข้อมูลต้นฉบับ
   let processes = input.map(([pid, arrival, burst]) => ({
     pid,
     arrival,
@@ -12,63 +13,98 @@ export default function RR(input, timeQuantum = 3) {
   let completionTime = new Array(n).fill(0);
   let ganttChart = [];
 
+  // เริ่มจากเวลาที่มีการมาถึงเร็วที่สุด
   let time = Math.min(...processes.map((p) => p.arrival));
-  let readyQueue = [];
 
-  while (true) {
-    // เพิ่ม process ที่มาถึงแล้วเข้า ready queue
-    processes.forEach((process, i) => {
+  // สร้างอาเรย์เพื่อติดตามกระบวนการที่ถูกเพิ่มลงใน ready queue
+  let inQueue = new Array(n).fill(false);
+  let readyQueue = [];
+  let completed = 0;
+
+  // ทำต่อไปจนกว่ากระบวนการทั้งหมดจะเสร็จ
+  while (completed < n) {
+    // เพิ่มกระบวนการที่มาถึงใหม่ลงใน ready queue
+    for (let i = 0; i < n; i++) {
       if (
-        process.arrival <= time &&
-        process.remainingTime > 0 &&
-        !readyQueue.includes(i)
+        processes[i].arrival <= time &&
+        processes[i].remainingTime > 0 &&
+        !inQueue[i]
       ) {
         readyQueue.push(i);
+        inQueue[i] = true;
       }
-    });
+    }
 
+    // ถ้า ready queue ว่าง ให้ขยับเวลาไปยังเวลาที่มาถึงถัดไป
     if (readyQueue.length === 0) {
-      // ถ้าไม่มี process ในคิว ให้ข้ามไปยังเวลาที่ process ถัดไปมาถึง
-      let arrivals = processes.filter((p) => p.remainingTime > 0).map((p) => p.arrival);
-      if (arrivals.length === 0) break; // ทุก process เสร็จหมดแล้ว
+      // ค้นหากระบวนการถัดไปที่จะมาถึง
+      let nextArrival = Infinity;
+      for (let i = 0; i < n; i++) {
+        if (processes[i].remainingTime > 0 && processes[i].arrival > time) {
+          nextArrival = Math.min(nextArrival, processes[i].arrival);
+        }
+      }
 
-      let nextArrival = Math.min(...arrivals);
-      time = Math.max(time, nextArrival);
+      if (nextArrival === Infinity) break; // ไม่มีกระบวนการให้ทำต่อ
+      time = nextArrival;
       continue;
     }
 
-    // ดึง process ออกจากคิว
+    // ดึงกระบวนการถัดไปจาก ready queue
     let currentProcessIdx = readyQueue.shift();
     let currentProcess = processes[currentProcessIdx];
 
-    // กำหนดเวลาที่จะ execute
+    // กำหนดเวลาการทำงานใน quantum นี้
     let executeTime = Math.min(timeQuantum, currentProcess.remainingTime);
+
+    // เพิ่มลงใน Gantt chart
     ganttChart.push({
       pid: currentProcess.pid,
       start: time,
       end: time + executeTime,
     });
 
-    // อัปเดตค่าเวลาที่เหลือ
-    currentProcess.remainingTime -= executeTime;
+    // ปรับเวลาและเวลาที่เหลือของกระบวนการ
     time += executeTime;
+    currentProcess.remainingTime -= executeTime;
 
-    // ถ้า process ยังไม่เสร็จ ใส่กลับเข้า ready queue
-    if (currentProcess.remainingTime > 0) {
-      readyQueue.push(currentProcessIdx);
-    } else {
-      // คำนวณ Completion Time, Turnaround Time และ Waiting Time
+    // ตรวจสอบว่ากระบวนการเสร็จแล้วหรือยัง
+    if (currentProcess.remainingTime === 0) {
+      // กระบวนการเสร็จแล้ว
+      completed++;
       completionTime[currentProcessIdx] = time;
       turnaroundTime[currentProcessIdx] =
         completionTime[currentProcessIdx] - currentProcess.arrival;
       waitingTime[currentProcessIdx] =
         turnaroundTime[currentProcessIdx] - currentProcess.burst;
+      inQueue[currentProcessIdx] = false; // ทำเครื่องหมายว่าไม่อยู่ใน queue
+    } else {
+      // กระบวนการยังมีเวลาเหลือ ตรวจสอบกระบวนการที่มาถึงใหม่
+      for (let i = 0; i < n; i++) {
+        if (
+          processes[i].arrival <= time &&
+          processes[i].remainingTime > 0 &&
+          !inQueue[i]
+        ) {
+          readyQueue.push(i);
+          inQueue[i] = true;
+        }
+      }
+
+      // เพิ่มกระบวนการปัจจุบันกลับไปที่ ready queue
+      readyQueue.push(currentProcessIdx);
+      // inQueue[currentProcessIdx] ยังคงเป็น true เพราะกระบวนการกลับเข้า queue
     }
   }
 
-  let context = ganttChart.map((entry, i) => {
+  // จัดรูปแบบข้อมูลสำหรับส่งกลับ
+  let context = ganttChart.map((entry) => {
     let duration = entry.end - entry.start;
-    return { pid: entry.pid, start: entry.start, duration };
+    return {
+      pid: entry.pid,
+      start: entry.start,
+      duration,
+    };
   });
 
   return [waitingTime, turnaroundTime, context];
