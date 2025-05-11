@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Fcfs from"./FCFS";
 import Hrrn from "./HRRN";
 import mlfq from "./MLQF"; 
@@ -66,7 +66,7 @@ const InputField = ({
   );
 };
 
-function Parameter({ selectedAlgo }) {
+function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const navigate = useNavigate();
   const [inputErrors, setInputErrors] = useState({
     startTime: "",
@@ -94,6 +94,9 @@ function Parameter({ selectedAlgo }) {
   const [processList, setProcessList] = useState([]);
   const [processIdCounter, setProcessIdCounter] = useState(1);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const rrQuantumRef = useRef(null);
+  const mlqfQuantumRef = useRef(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // โหลดข้อมูลจาก localStorage เมื่อ component ถูกโหลด - ด้วย useEffect ที่ทำงานเพียงครั้งเดียว
   useEffect(() => {
@@ -139,6 +142,14 @@ function Parameter({ selectedAlgo }) {
     }
   }, [processList, processIdCounter, initialLoadDone]);
 
+  useEffect(() => {
+    // sync rrQuantumRef และ mlqfQuantumRef กับ processList ที่โหลดมา
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    }
+  }, [processList]);
+
   const validateInput = (e, inputId) => {
     const value = e.target.value;
     const isValid = !value || /^[0-9]*$/.test(value);
@@ -173,7 +184,7 @@ function Parameter({ selectedAlgo }) {
       burstTime: inputValues.burstTime,
       priority: inputValues.priority,
       timeQuantumRR: showRoundRobin ? inputValues.timeQuantumRR : "-",
-      timeQuantumMLQF: showMLQF ? inputValues.second || "2" : "-",
+      timeQuantumMLQF: showMLQF ? `${inputValues.first || "1"},${inputValues.second || "2"},${inputValues.third || "3"}` : "-",
     };
 
     // เพิ่ม process ใหม่เข้าไปใน list
@@ -192,50 +203,65 @@ function Parameter({ selectedAlgo }) {
   const removeProcess = (id) => {
     const updatedList = processList.filter((process) => process.id !== id);
     setProcessList(updatedList);
+
+    // ถ้าลบจนหมด ให้รีเซ็ต processIdCounter
+    if (updatedList.length === 0) {
+      setProcessIdCounter(1);
+    }
   };
 
   const resetProcessList = () => {
     setProcessList([]);
     setProcessIdCounter(1);
+    setInputValues({
+      ...inputValues,
+      startTime: "",
+      burstTime: "",
+      priority: "",
+    });
+    setSelectedAlgo([]); // reset algorithm ที่เลือกด้วย
+    rrQuantumRef.current = null;
+    mlqfQuantumRef.current = null;
   };
 
   const generateRandomProcesses = () => {
-    // ใช้ค่าจาก input field "Number of Process"
-    const count = parseInt(inputValues.numberOfProcess) || 3; // ถ้าไม่ใช่ตัวเลขหรือเป็นค่าว่าง ใช้ค่าเริ่มต้นเป็น 3
-
+    if (isGenerating) return;
+    setIsGenerating(true);
+    const count = parseInt(inputValues.numberOfProcess) || 3;
     if (count <= 0 || count > 10) {
       alert("Please enter a valid number between 1 and 10");
+      setIsGenerating(false);
       return;
+    }
+    let startId = processList.length === 0 ? 1 : processIdCounter;
+
+    // ถ้ามี processList อยู่แล้ว ให้ใช้ Time Quantum เดิม
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    } else {
+      // ถ้าไม่มี process ให้สุ่มใหม่
+      rrQuantumRef.current = Math.floor(Math.random() * 10) + 1;
+      const randomFirst = Math.floor(Math.random() * 5) + 1;
+      const randomSecond = Math.floor(Math.random() * 5) + 1;
+      const randomThird = Math.floor(Math.random() * 5) + 1;
+      mlqfQuantumRef.current = `${randomFirst},${randomSecond},${randomThird}`;
     }
 
     const newProcesses = [];
-
     for (let i = 0; i < count; i++) {
-      // สร้างค่า Time Quantum(RR) และ Time Quantum(MLQF) แบบสุ่ม
-      const randomTimeQuantumRR = Math.floor(Math.random() * 10) + 1; // สุ่มค่าระหว่าง 1-10
-
-      // สร้างค่า Time Quantum สำหรับ MLQF แต่ละ level
-      const randomFirst = Math.floor(Math.random() * 5) + 1; // สุ่มค่า 1st level ระหว่าง 1-5
-      const randomSecond = Math.floor(Math.random() * 5) + 1; // สุ่มค่า 2nd level ระหว่าง 1-5
-      const randomThird = Math.floor(Math.random() * 5) + 1; // สุ่มค่า 3rd level ระหว่าง 1-5
-
-      // สร้าง timeQuantumMLQF string แสดงค่าทั้ง 3 level
-      const timeQuantumMLQF = showMLQF
-        ? `${randomFirst},${randomSecond},${randomThird}`
-        : "-";
-
       newProcesses.push({
-        id: `00${processIdCounter + i}`,
+        id: `00${startId + i}`,
         startTime: Math.floor(Math.random() * 10),
         burstTime: Math.floor(Math.random() * 10) + 1,
         priority: Math.floor(Math.random() * 10),
-        timeQuantumRR: showRoundRobin ? randomTimeQuantumRR.toString() : "-",
-        timeQuantumMLQF: timeQuantumMLQF,
+        timeQuantumRR: showRoundRobin ? rrQuantumRef.current.toString() : "-",
+        timeQuantumMLQF: showMLQF ? mlqfQuantumRef.current : "-",
       });
     }
-
     setProcessList([...processList, ...newProcesses]);
-    setProcessIdCounter(processIdCounter + count);
+    setProcessIdCounter(startId + count);
+    setIsGenerating(false);
   };
 
   const startSimulation = () => {
@@ -330,10 +356,15 @@ function Parameter({ selectedAlgo }) {
       
       if (selectedAlgo.includes("Round Robin")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+RR" : "RR";
-        
-        // Get time quantum value for RR
-        const timeQuantum = parseInt(inputValues.timeQuantumRR) || 3; // Default to 3 if not specified
-        
+        // ดึง time quantum จาก processList ตัวแรกที่มีอยู่จริง
+        let timeQuantum = null;
+        if (processList.length > 0) {
+          timeQuantum = parseInt(processList[0].timeQuantumRR);
+        }
+        if (!timeQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum ให้ถูกต้องก่อน");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = RR(processData, timeQuantum);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
@@ -406,11 +437,21 @@ function Parameter({ selectedAlgo }) {
       if (selectedAlgo.includes("Multilevel Queue With Feedback")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+MLQF" : "MLQF";
         
-        // Get time quantum values for MLQF
-        const t1 = parseInt(inputValues.first) || 5;  // Default to 5 if not specified
-        const t2 = parseInt(inputValues.second) || 10; // Default to 10 if not specified
-        const t3 = parseInt(inputValues.third) || 20;  // Default to 20 if not specified
-        
+        // ดึง time quantum MLQF จาก processList ตัวแรกที่มีอยู่จริง
+        let mlqfQuantum = null;
+        if (processList.length > 0) {
+          mlqfQuantum = processList[0].timeQuantumMLQF;
+        }
+        if (!mlqfQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum MLQF ให้ถูกต้องก่อน");
+          return;
+        }
+        // แยกค่า MLQF เป็น t1, t2, t3
+        const [t1, t2, t3] = mlqfQuantum.split(",").map(Number);
+        if (!t1 || !t2 || !t3) {
+          alert("Time Quantum MLQF ไม่ถูกต้อง กรุณาตรวจสอบข้อมูล");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = mlfq(processData, t1, t2, t3);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
@@ -491,7 +532,7 @@ function Parameter({ selectedAlgo }) {
           </div>
           <div className="h-[100%] flex justify-around">
             {/* Left Column: Always visible */}
-            <div className="flex flex-col justify-around w-[50%] h-[85%] border border-red-500">
+            <div className="flex flex-col justify-around w-[50%] h-[95%]">
               <InputField
                 label="Start Time"
                 inputId="startTime"
@@ -514,7 +555,7 @@ function Parameter({ selectedAlgo }) {
                 value={inputValues.priority}
               />
               <button
-                className="w-[70%] bg-[#55A972] hover:bg-[#3b7650] transition-all duration-300 ease-in-out transform h-[15%] rounded-md text-white font-medium text-[16pt]"
+                className="w-[70%] bg-[#55A972] mb-[0rem] hover:bg-[#3b7650] transition-all duration-300 ease-in-out transform h-[15%] rounded-md text-white font-medium text-[16pt]"
                 onClick={addProcess}
               >
                 Add Process
@@ -522,8 +563,7 @@ function Parameter({ selectedAlgo }) {
             </div>
             {/* Right Column: Rendered based on selected algorithms */}
             <div
-              className="flex flex-col justify-start gap-y-3 p-4 w-[60%] h-[85%] overflow-y-auto"
-              style={{ scrollbarGutter: "stable" }}
+              className="flex flex-col justify-start gap-y-3 p-2 w-[60%] h-auto overflow-visible"
             >
               {showRoundRobin && (
                 <InputField
