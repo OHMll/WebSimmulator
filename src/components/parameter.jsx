@@ -479,7 +479,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const showRoundRobin = selectedAlgo.includes("Round Robin");
   const showMLQF = selectedAlgo.includes("Multilevel Queue With Feedback");
 
-  // useEffect นี้จะทำการเคลียร์ error ของทุก field ที่ไม่ได้แสดงอยู่
+  // useEffect นี้จะทำการเคลียร์ error ของทุก field ที่ไม่ได้แสดงอยู่ และรีเซ็ตการแสดง right column เมื่อเปลี่ยนการเลือกอัลกอริทึม
   useEffect(() => {
     setInputErrors((prev) => ({
       ...prev,
@@ -489,6 +489,9 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       second: showMLQF ? prev.second : "",
       third: showMLQF ? prev.third : "",
     }));
+    
+    // รีเซ็ตการแสดง right column เมื่อเปลี่ยนการเลือกอัลกอริทึม
+    setShowRightColumn(false);
   }, [selectedAlgo, showRoundRobin, showMLQF]);
 
   // Function to toggle between main inputs and advanced settings on mobile
@@ -510,13 +513,13 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           <div>
             <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize Parameter</h1>
             
-            {/* Mobile view toggle button */}
+            {/* Mobile view toggle button - only show when RR or MLQF is selected */}
             {(showRoundRobin || showMLQF) && (
               <button 
                 className="lg:hidden mb-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
                 onClick={toggleRightColumn}
               >
-                {showRightColumn ? "← Back to Basic Settings" : "Advanced Settings →"}
+                {showRightColumn ? "← Back to Basic Settings" : "Time Quantum Setting →"}
               </button>
             )}
           </div>
@@ -555,7 +558,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
             
             {/* Right Column - shown on mobile only when toggled, always visible on desktop */}
             <div
-              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${showRightColumn || !showRoundRobin && !showMLQF ? '' : 'hidden lg:flex'}`}
+              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${!showRightColumn && (showRoundRobin || showMLQF) ? 'hidden lg:flex' : ''}`}
             >
               {showRoundRobin && (
                 <InputField
