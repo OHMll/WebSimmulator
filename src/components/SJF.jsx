@@ -51,14 +51,13 @@ export default function Sjf(input) {
   }
 
   // Create context data to map each process with its start time and duration
-  let contextData = ganttChart.map((entry, i) => {
-    let duration =
-      i === ganttChart.length - 1
-        ? entry.end - entry.start
-        : ganttChart[i + 1].start - entry.start;
-    return { pid: entry.pid, start: entry.start, duration };
+  let contextData = ganttChart.map((entry) => {
+    return {
+      pid: entry.pid,
+      start: entry.start,
+      duration: entry.end - entry.start,
+    };
   });
 
   return [waitingTime, turnaroundTime, contextData];
-  // return [waitingTime, turnaroundTime, contextData, ganttChart];
 }
