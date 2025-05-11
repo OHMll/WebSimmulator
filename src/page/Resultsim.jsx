@@ -33,11 +33,11 @@ function Resultsim() {
           const extractedResults = parsedResults.algorithm
             .split("+")
             .map((algo) => ({
-              name: algo,
-              avgWaitingTime: parsedResults.avgWaitingTime,
-              avgTurnaroundTime: parsedResults.avgTurnaroundTime,
-              contextData: parsedResults.contextData,
-            }));
+            name: algo,
+            avgWaitingTime: parsedResults.avgWaitingTime,
+            avgTurnaroundTime: parsedResults.avgTurnaroundTime,
+            contextData: parsedResults.contextData,
+          }));
           setAlgorithmResults(extractedResults);
         }
       } catch (err) {
@@ -62,69 +62,69 @@ function Resultsim() {
     navigate("/simulator");
   };
 
-  const renderGanttChart = (contextData, isZoomed = false) => {
-    if (!contextData || contextData.length === 0) {
-      return <div className="text-gray-500">ไม่มีข้อมูล Gantt Chart</div>;
-    }
+const renderGanttChart = (contextData, isZoomed = false) => {
+  if (!contextData || contextData.length === 0) {
+    return <div className="text-gray-500">ไม่มีข้อมูล Gantt Chart</div>;
+  }
 
     const scheduleData = contextData.map((item) => ({
-      startTime: item.start,
-      duration: item.duration,
+    startTime: item.start,
+    duration: item.duration,
       processId: item.pid,
-    }));
+  }));
 
-    return (
+  return (
       <div style={{ height: "100%", width: "100%" }}>
-        <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
-      </div>
-    );
-  };
+      <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
+    </div>
+  );
+};
 
-  const renderZoomModal = () => {
-    if (!zoomedChart) return null;
-    const { name, contextData } = zoomedChart;
+const renderZoomModal = () => {
+  if (!zoomedChart) return null;
+  const { name, contextData } = zoomedChart;
 
-    return (
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={() => setZoomedChart(null)}
+    >
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-        onClick={() => setZoomedChart(null)}
+        className="bg-white rounded-lg shadow-xl p-6 max-w-5xl w-full h-[90vh] relative"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="bg-white rounded-lg shadow-xl p-6 max-w-5xl w-full h-[90vh] relative"
-          onClick={(e) => e.stopPropagation()}
-        >
           <h2 className="text-xl font-bold mb-4">
             {name} - Gantt Chart (Zoomed)
           </h2>
-          <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
-            {renderGanttChart(contextData, true)}
-          </div>
-          <button
-            onClick={() => setZoomedChart(null)}
-            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-          >
-            ✖
-          </button>
+        <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
+          {renderGanttChart(contextData, true)}
         </div>
+        <button
+          onClick={() => setZoomedChart(null)}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+        >
+          ✖
+        </button>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   // Updated to make the algorithm cards responsive with correct desktop layout
-  const renderAlgorithmCards = () => {
-    if (!results) return null;
+const renderAlgorithmCards = () => {
+  if (!results) return null;
 
-    const algorithms = results.algorithm.split("+");
-    const totalPages = Math.ceil(algorithms.length / cardsPerPage);
-    const startIdx = currentPage * cardsPerPage;
-    const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
+  const algorithms = results.algorithm.split("+");
+  const totalPages = Math.ceil(algorithms.length / cardsPerPage);
+  const startIdx = currentPage * cardsPerPage;
+  const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
     const currentAlgorithms = algorithmResults
       .filter((a) => results.algorithm.split("+").includes(a.name))
       .slice(startIdx, endIdx);
 
     // For mobile: 2x2 grid (2 columns, 2 rows)
     // For desktop: Full width cards in separate containers as shown in image
-    return (
+  return (
       <div className="w-full md:w-[90vw]">
         {/* Mobile view - 2x2 grid */}
         <div className="flex flex-wrap justify-center gap-[2%] md:hidden w-full max-w-full mx-auto">
@@ -203,7 +203,7 @@ function Resultsim() {
               </div>
             );
           })}
-        </div>
+      </div>
         {algorithmResults.filter((a) => results.algorithm.split("+").includes(a.name)).length > cardsPerPage && (
           <div className="flex justify-center mt-2 mb-2 md:mt-4 space-x-2 text-[12px] md:text-base">
             <button
@@ -216,7 +216,7 @@ function Resultsim() {
               }`}
             >
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-            </button>
+          </button>
             <div className="flex items-center px-2 md:px-4 font-medium">
               {currentPage + 1} / {totalPages}
             </div>
@@ -232,64 +232,64 @@ function Resultsim() {
               }`}
             >
               <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
-  const renderSummaryTable = () => {
-    if (!results) return null;
+ const renderSummaryTable = () => {
+  if (!results) return null;
 
     const sortedResults = [...algorithmResults].sort(
       (a, b) => parseFloat(a.avgWaitingTime) - parseFloat(b.avgWaitingTime)
-    );
+  );
 
-    return (
+  return (
       <div className="w-full max-w-[98vw] mx-auto bg-white rounded-lg shadow overflow-hidden mb-8 text-[10px] md:text-base">
-        <div className="grid grid-cols-3 bg-blue-500 text-white">
-          <div className="py-2 px-4 text-center">Algorithm</div>
-          <div className="py-2 px-4 text-center">Average Waiting Time</div>
-          <div className="py-2 px-4 text-center">Average Turn Around Time</div>
-        </div>
-        {sortedResults.map((algo, idx) => (
-          <div
-            key={idx}
+      <div className="grid grid-cols-3 bg-blue-500 text-white">
+        <div className="py-2 px-4 text-center">Algorithm</div>
+        <div className="py-2 px-4 text-center">Average Waiting Time</div>
+        <div className="py-2 px-4 text-center">Average Turn Around Time</div>
+      </div>
+      {sortedResults.map((algo, idx) => (
+        <div 
+          key={idx} 
             className={`grid grid-cols-3 ${
               idx % 2 === 0 ? "bg-gray-50" : "bg-white"
             } border-b`}
-          >
-            <div className="py-2 px-4 text-center font-medium">{algo.name}</div>
+        >
+          <div className="py-2 px-4 text-center font-medium">{algo.name}</div>
             <div className="py-2 px-4 text-center">
               {formatTime(algo.avgWaitingTime)}
             </div>
             <div className="py-2 px-4 text-center">
               {formatTime(algo.avgTurnaroundTime)}
             </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+        </div>
+      ))}
+    </div>
+  );
+};
 
   const renderProcessTable = () => {
     const data =
       processList.length > 0
         ? processList
         : results?.contextData?.reduce((acc, item) => {
-            if (!acc[item.pid]) {
-              acc[item.pid] = {
-                id: item.pid,
-                startTime: item.originalStartTime || 0,
-                burstTime: item.originalBurstTime || 0,
-                priority: item.priority || 0,
-                timeQuantumRR: "-",
+      if (!acc[item.pid]) {
+        acc[item.pid] = {
+          id: item.pid,
+          startTime: item.originalStartTime || 0,
+          burstTime: item.originalBurstTime || 0,
+          priority: item.priority || 0,
+          timeQuantumRR: "-",
                 timeQuantumMLQF: "-",
-              };
-            }
-            return acc;
-          }, {});
+        };
+      }
+      return acc;
+    }, {});
     if (!data || Object.keys(data).length === 0) return null;
 
     const processes = Array.isArray(data) ? data : Object.values(data);

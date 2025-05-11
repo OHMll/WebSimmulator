@@ -20,21 +20,25 @@ const InputField = ({
   readOnly,
   noPlaceholder,
 }) => {
-  // Responsive padding and width based on screen size
-  let inputPadding = isRight ? "pl-12 sm:pl-16 md:pl-20 lg:pl-24" : "pl-16 sm:pl-20 md:pl-24 lg:pl-32";
+  // Responsive padding and width based on screen size - ปรับค่า padding ให้เพิ่มขึ้น
+  let inputPadding = isRight ? "pl-14 sm:pl-20 md:pl-24 lg:pl-28" : "pl-20 sm:pl-24 md:pl-28 lg:pl-36";
   let labelClass = isRight ? "w-24 sm:w-32 md:w-40 lg:w-48 whitespace-nowrap" : "";
   let inputWidth = isRight ? "w-full sm:w-[60%]" : "w-full sm:w-[70%]";
+  
+  // คงคำว่า e.g. ไว้ในข้อความ placeholder
+  let placeholder = noPlaceholder ? "" : "e.g. 1,2,3";
 
   // Special adjustments for specific fields
-  if (inputId === "timeQuantumMLOF") {
-    labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
-    inputPadding = "pl-44 sm:pl-52 md:pl-60 lg:pl-72"; 
-    inputWidth = "w-full sm:w-[80%] md:w-[90%]"; 
-  }
+if (inputId === "timeQuantumMLOF") {
+  labelClass = "w-48 sm:w-56 md:w-64 lg:w-80 whitespace-nowrap"; // เพิ่มความกว้างของ label ให้มากขึ้น
+  inputPadding = "pl-52 sm:pl-60 md:pl-72 lg:pl-86"; // เพิ่ม padding-left ของ input ให้มากขึ้น
+  inputWidth = "w-full sm:w-[85%] md:w-[90%]"; 
+}
   if (inputId === "timeQuantumRR") {
     labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
-    inputPadding = "pl-32 sm:pl-40 md:pl-44 lg:pl-52"; 
-    inputWidth = "w-full sm:w-[80%] md:w-[90%]"; 
+    inputPadding = "pl-36 sm:pl-44 md:pl-48 lg:pl-56"; 
+    inputWidth = "w-full sm:w-[80%] md:w-[90%]";
+    placeholder = "e.g. 1,2,3";
   }
 
   return (
@@ -47,14 +51,14 @@ const InputField = ({
         </span>
         <input
           type="text"
-          placeholder={noPlaceholder ? "" : "e.g. 1,2,3"}
-          pattern="^[0-9]{0,2}$"
+          placeholder={placeholder}
+          pattern="^[0-9]*$"
           maxLength="2"
           value={value}
           readOnly={readOnly}
           onChange={(e) => validateInput(e, inputId)}
           onInput={(e) => validateInput(e, inputId)}
-          className={`${inputPadding} pr-2 sm:pr-3 md:pr-5 py-2 sm:py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-xs sm:text-sm md:text-base lg:text-[12pt] shadow-md placeholder-slate-400
+          className={`${inputPadding} pr-4 sm:pr-5 md:pr-6 py-2 sm:py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-xs sm:text-sm md:text-base lg:text-[12pt] shadow-md placeholder-gray-400
             focus:outline-none focus:ring-2 focus:ring-[#3F72AF]
             invalid:border-[#FA494C] invalid:text-[#FA494C] invalid:bg-[#FFC9CA]
             focus:invalid:border-[#FA494C] focus:invalid:ring-[#FA494C]
@@ -96,6 +100,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const rrQuantumRef = useRef(null);
   const mlqfQuantumRef = useRef(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // State for mobile view management
   const [showRightColumn, setShowRightColumn] = useState(false);
@@ -143,6 +148,14 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       localStorage.setItem("processIdCounter", processIdCounter.toString());
     }
   }, [processList, processIdCounter, initialLoadDone]);
+
+  useEffect(() => {
+    // sync rrQuantumRef และ mlqfQuantumRef กับ processList ที่โหลดมา
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    }
+  }, [processList]);
 
   const validateInput = (e, inputId) => {
     const value = e.target.value;
@@ -222,15 +235,22 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   };
 
   const generateRandomProcesses = () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
     const count = parseInt(inputValues.numberOfProcess) || 3;
     if (count <= 0 || count > 10) {
       alert("Please enter a valid number between 1 and 10");
+      setIsGenerating(false);
       return;
     }
     let startId = processList.length === 0 ? 1 : processIdCounter;
 
-    // สุ่มค่า Time Quantum RR และ MLQF เฉพาะเมื่อไม่มี Process อยู่แล้ว
-    if (processList.length === 0) {
+    // ถ้ามี processList อยู่แล้ว ให้ใช้ Time Quantum เดิม
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    } else {
+      // ถ้าไม่มี process ให้สุ่มใหม่
       rrQuantumRef.current = Math.floor(Math.random() * 10) + 1;
       const randomFirst = Math.floor(Math.random() * 5) + 1;
       const randomSecond = Math.floor(Math.random() * 5) + 1;
@@ -251,6 +271,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }
     setProcessList([...processList, ...newProcesses]);
     setProcessIdCounter(startId + count);
+    setIsGenerating(false);
   };
 
   const startSimulation = () => {
@@ -345,10 +366,15 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       
       if (selectedAlgo.includes("Round Robin")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+RR" : "RR";
-        
-        // Get time quantum value for RR
-        const timeQuantum = parseInt(inputValues.timeQuantumRR) || 3; // Default to 3 if not specified
-        
+        // ดึง time quantum จาก processList ตัวแรกที่มีอยู่จริง
+        let timeQuantum = null;
+        if (processList.length > 0) {
+          timeQuantum = parseInt(processList[0].timeQuantumRR);
+        }
+        if (!timeQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum ให้ถูกต้องก่อน");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = RR(processData, timeQuantum);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
@@ -421,11 +447,21 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       if (selectedAlgo.includes("Multilevel Queue With Feedback")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+MLQF" : "MLQF";
         
-        // Get time quantum values for MLQF
-        const t1 = parseInt(inputValues.first) || 5;  // Default to 5 if not specified
-        const t2 = parseInt(inputValues.second) || 10; // Default to 10 if not specified
-        const t3 = parseInt(inputValues.third) || 20;  // Default to 20 if not specified
-        
+        // ดึง time quantum MLQF จาก processList ตัวแรกที่มีอยู่จริง
+        let mlqfQuantum = null;
+        if (processList.length > 0) {
+          mlqfQuantum = processList[0].timeQuantumMLQF;
+        }
+        if (!mlqfQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum MLQF ให้ถูกต้องก่อน");
+          return;
+        }
+        // แยกค่า MLQF เป็น t1, t2, t3
+        const [t1, t2, t3] = mlqfQuantum.split(",").map(Number);
+        if (!t1 || !t2 || !t3) {
+          alert("Time Quantum MLQF ไม่ถูกต้อง กรุณาตรวจสอบข้อมูล");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = mlfq(processData, t1, t2, t3);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
@@ -479,7 +515,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const showRoundRobin = selectedAlgo.includes("Round Robin");
   const showMLQF = selectedAlgo.includes("Multilevel Queue With Feedback");
 
-  // useEffect นี้จะทำการเคลียร์ error ของทุก field ที่ไม่ได้แสดงอยู่ และรีเซ็ตการแสดง right column เมื่อเปลี่ยนการเลือกอัลกอริทึม
+  // useEffect นี้จะทำการเคลียร์ error ของทุก field ที่ไม่ได้แสดงอยู่
   useEffect(() => {
     setInputErrors((prev) => ({
       ...prev,
@@ -489,9 +525,6 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       second: showMLQF ? prev.second : "",
       third: showMLQF ? prev.third : "",
     }));
-    
-    // รีเซ็ตการแสดง right column เมื่อเปลี่ยนการเลือกอัลกอริทึม
-    setShowRightColumn(false);
   }, [selectedAlgo, showRoundRobin, showMLQF]);
 
   // Function to toggle between main inputs and advanced settings on mobile
@@ -513,7 +546,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           <div>
             <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize Parameter</h1>
             
-            {/* Mobile view toggle button - only show when RR or MLQF is selected */}
+            {/* Mobile view toggle button - Changed text from "Advanced Settings" to "Time Quantum Setting" */}
             {(showRoundRobin || showMLQF) && (
               <button 
                 className="lg:hidden mb-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
@@ -558,7 +591,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
             
             {/* Right Column - shown on mobile only when toggled, always visible on desktop */}
             <div
-              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${!showRightColumn && (showRoundRobin || showMLQF) ? 'hidden lg:flex' : ''}`}
+              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${showRightColumn || !showRoundRobin && !showMLQF ? '' : 'hidden lg:flex'}`}
             >
               {showRoundRobin && (
                 <InputField
