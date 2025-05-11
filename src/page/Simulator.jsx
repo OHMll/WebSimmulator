@@ -60,7 +60,6 @@ function Simulator() {
       </div>
 
       <div className="h-[65%]">
-        {/* ส่ง selectedAlgo เข้าไปใน Parameter */}
         <Parameter selectedAlgo={selectedAlgo} />
       </div>
     </div>
