@@ -57,7 +57,7 @@ function Resultsim() {
   }, []);
 
   const formatTime = (time) => parseFloat(time).toFixed(1);
-  
+
   const goToSimulator = () => {
     navigate("/simulator");
   };
@@ -361,7 +361,7 @@ const renderAlgorithmCards = () => {
         <h1 className="text-lg md:text-2xl font-bold mb-6 w-full text-center bg-gray-100 py-3 rounded-lg shadow-sm">
           Process Scheduling Results
         </h1>
-        
+
         {error ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex flex-col items-center">
             <p>{error}</p>
