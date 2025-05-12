@@ -16,7 +16,7 @@ function Overview() {
 
     return (
         <div
-            className="bg-[#3F72AF] min-h-[calc(100vh-6.79rem)] w-full overflow-hidden relative " >
+            className="bg-[#3F72AF] min-h-[calc(100vh-6.77rem)] w-full overflow-hidden relative " >
             <div className="flex flex-col items-center px-4 py-6  ">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-6xl">
                     {topics.map((topic) => (

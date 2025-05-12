@@ -1,42 +1,81 @@
 export default function Hrrn(input) {
-    input = input.map(p => p.slice(0, -1));
-    let processes = input.map(p => [p[0], p[1], p[2]]);
-  
-    let waitingTimes = [];
-    let turnaroundTimes = [];
-    let executionOrder = [];
-    let currentTime = processes[0][1];
-  
-    while (true) {
-        let availableProcesses = processes.filter(p => p[1] <= currentTime && p.length < 4);
-        
-        if (availableProcesses.length === 0) {
-            if (currentTime - processes[0][1] > 100) break;
-            currentTime++;
-            continue;
-        }
-        
-        let hrrnValues = availableProcesses.map(p => {
-            let responseRatio = (p[2] + (currentTime - p[1])) / p[2];
-            return { responseRatio, process: p };
-        });
-        
-        let nextProcess = hrrnValues.reduce((max, p) => p.responseRatio > max.responseRatio ? p : max, hrrnValues[0]).process;
-        
-        executionOrder.push({ pid: nextProcess[0], start: currentTime, duration: nextProcess[2] });
-        
-        currentTime += nextProcess[2];
-        let waitingTime = currentTime - nextProcess[1] - nextProcess[2];
-        let turnaroundTime = currentTime - nextProcess[1];
-        
-        waitingTimes.push(waitingTime);
-        turnaroundTimes.push(turnaroundTime);
-        
-        let index = processes.findIndex(p => p[0] === nextProcess[0]);
-        processes[index] = [...nextProcess, waitingTime, turnaroundTime];
-        
-        if (processes.every(p => p.length === 4)) break;
+  // ทำสำเนาของ input เพื่อไม่ให้เปลี่ยนแปลงข้อมูลต้นฉบับ
+  const processes = input.map((p) => ({
+    pid: p[0],
+    arrivalTime: p[1],
+    burstTime: p[2],
+    completed: false,
+  }));
+
+  let waitingTimes = [];
+  let turnaroundTimes = [];
+  let executionOrder = [];
+
+  // หาเวลาเริ่มต้นที่จะเริ่มทำงาน (เลือกเวลามาถึงที่เร็วที่สุด)
+  let currentTime = Math.min(...processes.map((p) => p.arrivalTime));
+  let contextSwitches = 0;
+
+  // ทำงานไปเรื่อยๆ จนกว่าจะทำงานครบทุกกระบวนการ
+  while (processes.some((p) => !p.completed)) {
+    // หากระบวนการที่มาถึงแล้วและยังไม่เสร็จสิ้น
+    let availableProcesses = processes.filter(
+      (p) => p.arrivalTime <= currentTime && !p.completed
+    );
+
+    // ถ้าไม่มีกระบวนการใดพร้อมทำงาน ให้เลื่อนเวลาไปยังเวลามาถึงของกระบวนการถัดไป
+    if (availableProcesses.length === 0) {
+      const nextArrival = processes
+        .filter((p) => !p.completed && p.arrivalTime > currentTime)
+        .reduce((min, p) => Math.min(min, p.arrivalTime), Infinity);
+
+      currentTime = nextArrival;
+      continue;
     }
-    
-    return [ waitingTimes, turnaroundTimes, executionOrder ];
+
+    // คำนวณค่า Response Ratio สำหรับทุกกระบวนการที่พร้อมทำงาน
+    let hrrnValues = availableProcesses.map((p) => {
+      // สูตร Response Ratio = (Waiting Time + Burst Time) / Burst Time
+      const waitingTime = currentTime - p.arrivalTime;
+      const responseRatio = (waitingTime + p.burstTime) / p.burstTime;
+      return { responseRatio, process: p };
+    });
+
+    // เลือกกระบวนการที่มีค่า Response Ratio สูงที่สุด
+    let selectedProcess = hrrnValues.reduce(
+      (max, p) => (p.responseRatio > max.responseRatio ? p : max),
+      hrrnValues[0]
+    ).process;
+
+    // เพิ่ม context switch ถ้าไม่ใช่กระบวนการแรก
+    if (executionOrder.length > 0) {
+      contextSwitches++;
+    }
+
+    // บันทึกลำดับการทำงาน
+    executionOrder.push({
+      pid: selectedProcess.pid,
+      start: currentTime,
+      duration: selectedProcess.burstTime,
+    });
+
+    // อัปเดตเวลาปัจจุบัน
+    currentTime += selectedProcess.burstTime;
+
+    // คำนวณเวลารอและเวลาตอบสนองรวม
+    const waitingTime =
+      currentTime - selectedProcess.arrivalTime - selectedProcess.burstTime;
+    const turnaroundTime = currentTime - selectedProcess.arrivalTime;
+
+    // เก็บข้อมูลเวลา
+    waitingTimes.push(waitingTime);
+    turnaroundTimes.push(turnaroundTime);
+
+    // ทำเครื่องหมายว่ากระบวนการนี้เสร็จสิ้นแล้ว
+    const index = processes.findIndex((p) => p.pid === selectedProcess.pid);
+    processes[index].completed = true;
+    processes[index].waitingTime = waitingTime;
+    processes[index].turnaroundTime = turnaroundTime;
   }
+
+  return [waitingTimes, turnaroundTimes, executionOrder];
+}

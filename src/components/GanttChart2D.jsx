@@ -10,6 +10,8 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
   const [contentHeight, setContentHeight] = useState(0);
   const animationRef = useRef(null);
   const currentTimeRef = useRef(0);
+  const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, text: '' });
+  const [hoveredBlock, setHoveredBlock] = useState(null);
 
   useEffect(() => {
     if (!scheduleData || scheduleData.length === 0) return;
@@ -200,41 +202,40 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
           const blockX = labelWidth + paddingX + startTime * timeScale;
           const blockY = y + 4;
           const blockHeight = rowHeight - 8;
+          const blockWidth = duration * timeScale;
           
           if (currentTime < startTime) {
             // Not started yet
           } else if (currentTime >= startTime && currentTime < endTime) {
             // Currently active
             const progress = (currentTime - startTime) / duration;
-            const blockWidth = progress * duration * timeScale;
+            const activeBlockWidth = progress * duration * timeScale;
             
             // Draw partial block
             ctx.fillStyle = activeColor;
-            ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
+            ctx.fillRect(blockX, blockY, activeBlockWidth, blockHeight);
             
             // Draw progress border
             ctx.strokeStyle = '#2c3e50';
             ctx.lineWidth = 2;
-            ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+            ctx.strokeRect(blockX, blockY, activeBlockWidth, blockHeight);
             
             // Add glow effect
             ctx.shadowColor = baseColor;
             ctx.shadowBlur = 6;
-            ctx.strokeRect(blockX, blockY, blockWidth, blockHeight);
+            ctx.strokeRect(blockX, blockY, activeBlockWidth, blockHeight);
             ctx.shadowBlur = 0;
             
             // Add time label if there's enough space
-            if (blockWidth > 30) {
+            if (activeBlockWidth > 30) {
               ctx.fillStyle = 'white';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.font = '10px Arial';
-              ctx.fillText(startTime.toFixed(1), blockX + blockWidth / 2, blockY + blockHeight / 2);
+              ctx.fillText(startTime.toFixed(1), blockX + activeBlockWidth / 2, blockY + blockHeight / 2);
             }
           } else if (currentTime >= endTime) {
             // Completed
-            const blockWidth = duration * timeScale;
-            
             // Draw complete block
             ctx.fillStyle = doneColor;
             ctx.fillRect(blockX, blockY, blockWidth, blockHeight);
@@ -260,6 +261,59 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       ctx.restore();
     };
     
+    // Mouse event handlers (HTML tooltip)
+    const handleMouseMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      let foundBlock = null;
+      processIds.forEach((processId, rowIndex) => {
+        const processItems = processGroups[processId];
+        const y = paddingTop + timelineHeight + rowIndex * rowHeight;
+        processItems.forEach(item => {
+          const startTime = item.startTime;
+          const duration = item.duration;
+          const blockX = labelWidth + paddingX + startTime * timeScale;
+          const blockY = y + 4;
+          const blockHeight = rowHeight - 8;
+          const blockWidth = duration * timeScale;
+          if (
+            mouseX >= blockX && mouseX <= blockX + blockWidth &&
+            mouseY >= blockY && mouseY <= blockY + blockHeight
+          ) {
+            foundBlock = {
+              processId,
+              startTime,
+              duration,
+              endTime: startTime + duration,
+              blockX,
+              blockY,
+              blockWidth,
+              blockHeight
+            };
+          }
+        });
+      });
+      if (foundBlock) {
+        setTooltip({
+          show: true,
+          x: e.clientX,
+          y: e.clientY,
+          text: `${foundBlock.startTime.toFixed(1)} → ${foundBlock.endTime.toFixed(1)}`
+        });
+        setHoveredBlock(foundBlock);
+      } else {
+        setTooltip({ show: false, x: 0, y: 0, text: '' });
+        setHoveredBlock(null);
+      }
+    };
+    const handleMouseLeave = () => {
+      setTooltip({ show: false, x: 0, y: 0, text: '' });
+      setHoveredBlock(null);
+    };
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+
     // Animation loop
     const animate = () => {
       if (!canvasRef.current) return;
@@ -294,6 +348,8 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, [scheduleData, canvasSize, isPlaying, speed]);
   
@@ -329,6 +385,27 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
         }}
       >
         <canvas ref={canvasRef} />
+        {/* Tooltip HTML */}
+        {tooltip.show && (
+          <div
+            style={{
+              position: 'fixed',
+              left: tooltip.x + 16,
+              top: tooltip.y - 36,
+              background: 'rgba(0,0,0,0.85)',
+              color: 'white',
+              padding: '4px 10px',
+              borderRadius: 6,
+              fontSize: 13,
+              pointerEvents: 'none',
+              zIndex: 1000,
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}
+          >
+            {tooltip.text}
+          </div>
+        )}
       </div>
       
       {/* Controls overlaid on top */}

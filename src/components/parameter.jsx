@@ -96,6 +96,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const rrQuantumRef = useRef(null);
   const mlqfQuantumRef = useRef(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // โหลดข้อมูลจาก localStorage เมื่อ component ถูกโหลด - ด้วย useEffect ที่ทำงานเพียงครั้งเดียว
   useEffect(() => {
@@ -140,6 +141,14 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       localStorage.setItem("processIdCounter", processIdCounter.toString());
     }
   }, [processList, processIdCounter, initialLoadDone]);
+
+  useEffect(() => {
+    // sync rrQuantumRef และ mlqfQuantumRef กับ processList ที่โหลดมา
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    }
+  }, [processList]);
 
   const validateInput = (e, inputId) => {
     const value = e.target.value;
@@ -216,15 +225,22 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   };
 
   const generateRandomProcesses = () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
     const count = parseInt(inputValues.numberOfProcess) || 3;
     if (count <= 0 || count > 10) {
       alert("Please enter a valid number between 1 and 10");
+      setIsGenerating(false);
       return;
     }
     let startId = processList.length === 0 ? 1 : processIdCounter;
 
-    // สุ่มค่า Time Quantum RR และ MLQF เฉพาะเมื่อไม่มี Process อยู่แล้ว
-    if (processList.length === 0) {
+    // ถ้ามี processList อยู่แล้ว ให้ใช้ Time Quantum เดิม
+    if (processList.length > 0) {
+      rrQuantumRef.current = processList[0].timeQuantumRR;
+      mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
+    } else {
+      // ถ้าไม่มี process ให้สุ่มใหม่
       rrQuantumRef.current = Math.floor(Math.random() * 10) + 1;
       const randomFirst = Math.floor(Math.random() * 5) + 1;
       const randomSecond = Math.floor(Math.random() * 5) + 1;
@@ -245,6 +261,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }
     setProcessList([...processList, ...newProcesses]);
     setProcessIdCounter(startId + count);
+    setIsGenerating(false);
   };
 
   const startSimulation = () => {
@@ -339,10 +356,15 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       
       if (selectedAlgo.includes("Round Robin")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+RR" : "RR";
-        
-        // Get time quantum value for RR
-        const timeQuantum = parseInt(inputValues.timeQuantumRR) || 3; // Default to 3 if not specified
-        
+        // ดึง time quantum จาก processList ตัวแรกที่มีอยู่จริง
+        let timeQuantum = null;
+        if (processList.length > 0) {
+          timeQuantum = parseInt(processList[0].timeQuantumRR);
+        }
+        if (!timeQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum ให้ถูกต้องก่อน");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = RR(processData, timeQuantum);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
@@ -415,11 +437,21 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       if (selectedAlgo.includes("Multilevel Queue With Feedback")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+MLQF" : "MLQF";
         
-        // Get time quantum values for MLQF
-        const t1 = parseInt(inputValues.first) || 5;  // Default to 5 if not specified
-        const t2 = parseInt(inputValues.second) || 10; // Default to 10 if not specified
-        const t3 = parseInt(inputValues.third) || 20;  // Default to 20 if not specified
-        
+        // ดึง time quantum MLQF จาก processList ตัวแรกที่มีอยู่จริง
+        let mlqfQuantum = null;
+        if (processList.length > 0) {
+          mlqfQuantum = processList[0].timeQuantumMLQF;
+        }
+        if (!mlqfQuantum) {
+          alert("กรุณา Generate Process หรือกรอก Time Quantum MLQF ให้ถูกต้องก่อน");
+          return;
+        }
+        // แยกค่า MLQF เป็น t1, t2, t3
+        const [t1, t2, t3] = mlqfQuantum.split(",").map(Number);
+        if (!t1 || !t2 || !t3) {
+          alert("Time Quantum MLQF ไม่ถูกต้อง กรุณาตรวจสอบข้อมูล");
+          return;
+        }
         const [waitingTimes, turnaroundTimes, contextData] = mlfq(processData, t1, t2, t3);
         
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
