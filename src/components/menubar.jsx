@@ -116,7 +116,8 @@ const Menubar = () => {
   }, [activeButton]);
 
   return (
-    <div className="w-full relative">
+
+    <div className="w-full relative sticky top-0 z-50">
       {/* Desktop & Tablet Navigation */}
       <div className="hidden md:flex justify-between">
         <button
