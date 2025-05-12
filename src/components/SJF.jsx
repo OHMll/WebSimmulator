@@ -60,4 +60,5 @@ export default function Sjf(input) {
   });
 
   return [waitingTime, turnaroundTime, contextData];
+
 }

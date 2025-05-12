@@ -139,4 +139,5 @@ export default function mlfq(input, t1 = 5, t2 = 10, t3 = 20) {
   });
 
   return [waitingTimes, turnaroundTimes, ganttChart];
+
 }

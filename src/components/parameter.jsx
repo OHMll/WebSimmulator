@@ -20,45 +20,49 @@ const InputField = ({
   readOnly,
   noPlaceholder,
 }) => {
-  // ปรับ padding และความกว้างตามประเภทของฟิลด์
-  let inputPadding = isRight ? "pl-24" : "pl-32";
-  let labelClass = isRight ? "w-48 whitespace-nowrap" : "";
-  let inputWidth = isRight ? "w-[60%]" : "w-[70%]";
+  // Responsive padding and width based on screen size - ปรับค่า padding ให้เพิ่มขึ้น
+  let inputPadding = isRight ? "pl-14 sm:pl-20 md:pl-24 lg:pl-28" : "pl-20 sm:pl-24 md:pl-28 lg:pl-36";
+  let labelClass = isRight ? "w-24 sm:w-32 md:w-40 lg:w-48 whitespace-nowrap" : "";
+  let inputWidth = isRight ? "w-full sm:w-[60%]" : "w-full sm:w-[70%]";
+  
+  // คงคำว่า e.g. ไว้ในข้อความ placeholder
+  let placeholder = noPlaceholder ? "" : "e.g. 1,2,3";
 
-  // ปรับพิเศษสำหรับฟิลด์ Time Quantum in RR และ Level of Time Quantum in MLQF
-  if (inputId === "timeQuantumMLOF") {
-    labelClass = "w-60 whitespace-nowrap"; // เพิ่มความกว้างให้กับ label
-    inputPadding = "pl-72"; // เพิ่ม padding ซ้ายให้มากขึ้น
-    inputWidth = "w-[90%]"; // เพิ่มความกว้างให้กับ container
-  }
-  if (inputId == "timeQuantumRR") {
-    labelClass = "w-60 whitespace-nowrap"; // เพิ่มความกว้างให้กับ label
-    inputPadding = "pl-52"; // เพิ่ม padding ซ้ายให้มากขึ้น
-    inputWidth = "w-[90%]"; // เพิ่มความกว้างให้กับ container
+  // Special adjustments for specific fields
+if (inputId === "timeQuantumMLOF") {
+  labelClass = "w-48 sm:w-56 md:w-64 lg:w-80 whitespace-nowrap"; // เพิ่มความกว้างของ label ให้มากขึ้น
+  inputPadding = "pl-52 sm:pl-60 md:pl-72 lg:pl-86"; // เพิ่ม padding-left ของ input ให้มากขึ้น
+  inputWidth = "w-full sm:w-[85%] md:w-[90%]"; 
+}
+  if (inputId === "timeQuantumRR") {
+    labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
+    inputPadding = "pl-36 sm:pl-44 md:pl-48 lg:pl-56"; 
+    inputWidth = "w-full sm:w-[80%] md:w-[90%]";
+    placeholder = "e.g. 1,2,3";
   }
 
   return (
-    <div className={inputWidth}>
+    <div className={`${inputWidth} mb-2 sm:mb-0`}>
       <div className="relative">
         <span
-          className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-[12pt] text-black pointer-events-none ${labelClass}`}
+          className={`absolute left-1 sm:left-2 md:left-3 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm md:text-base lg:text-[12pt] text-black pointer-events-none ${labelClass}`}
         >
           {label} :
         </span>
         <input
           type="text"
-          placeholder={noPlaceholder ? "" : "e.g. 1,2,3"}
-          pattern="^[0-9]{0,2}$"
+          placeholder={placeholder}
+          pattern="^[0-9]*$"
           maxLength="2"
           value={value}
           readOnly={readOnly}
           onChange={(e) => validateInput(e, inputId)}
           onInput={(e) => validateInput(e, inputId)}
-          className={`${inputPadding} pr-5 py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-[12pt] shadow-md placeholder-slate-400
+          className={`${inputPadding} pr-4 sm:pr-5 md:pr-6 py-2 sm:py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-xs sm:text-sm md:text-base lg:text-[12pt] shadow-md placeholder-gray-400
             focus:outline-none focus:ring-2 focus:ring-[#3F72AF]
             invalid:border-[#FA494C] invalid:text-[#FA494C] invalid:bg-[#FFC9CA]
             focus:invalid:border-[#FA494C] focus:invalid:ring-[#FA494C]
-            ${isRight ? "w-full" : "w-full"}`}
+            w-full`}
         />
       </div>
       {error && <p className="text-[#FA494C] text-xs mt-1">{error}</p>}
@@ -97,6 +101,11 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const rrQuantumRef = useRef(null);
   const mlqfQuantumRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  
+  // State for mobile view management
+  const [showRightColumn, setShowRightColumn] = useState(false);
+
 
   // โหลดข้อมูลจาก localStorage เมื่อ component ถูกโหลด - ด้วย useEffect ที่ทำงานเพียงครั้งเดียว
   useEffect(() => {
@@ -198,6 +207,9 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       burstTime: "",
       priority: "",
     });
+    
+    // Return to main inputs on mobile after adding
+    setShowRightColumn(false);
   };
 
   const removeProcess = (id) => {
@@ -501,8 +513,6 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }
   };
   
-  
-
   // ตรวจสอบเงื่อนไขของอัลกอริทึมที่เลือก
   const showRoundRobin = selectedAlgo.includes("Round Robin");
   const showMLQF = selectedAlgo.includes("Multilevel Queue With Feedback");
@@ -519,20 +529,39 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }));
   }, [selectedAlgo, showRoundRobin, showMLQF]);
 
+  // Function to toggle between main inputs and advanced settings on mobile
+  const toggleRightColumn = () => {
+    setShowRightColumn(!showRightColumn);
+  };
+
   return (
-    <div className="w-[100%] h-[90%]">
-      <div className="pl-3 text-[20pt] font-bold">
+    <div className="w-full h-[90%]">
+      <div className="pl-3 text-base sm:text-lg md:text-xl lg:text-[20pt] font-bold">
         <h1>Parameter Setting</h1>
       </div>
-      <div className="h-[100%] flex justify-around p-5 rounded-[1rem] bg-[#FFFFFF90] gap-x-4 overflow-hidden">
-        {/* คอลัมน์ซ้าย */}
-        <div className="w-[45%]">
+      
+      {/* Main content container */}
+      <div className="h-[95%] flex flex-col lg:flex-row justify-around p-2 sm:p-3 md:p-4 lg:p-5 rounded-lg bg-[#FFFFFF90] gap-2 sm:gap-3 md:gap-4 overflow-y-auto lg:overflow-hidden">
+        
+        {/* Left column (Parameter settings) */}
+        <div className="w-full lg:w-[45%] mb-4 lg:mb-0">
           <div>
-            <h1 className="text-[14pt] pb-3">Customize Parameter</h1>
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize Parameter</h1>
+            
+            {/* Mobile view toggle button - Changed text from "Advanced Settings" to "Time Quantum Setting" */}
+            {(showRoundRobin || showMLQF) && (
+              <button 
+                className="lg:hidden mb-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
+                onClick={toggleRightColumn}
+              >
+                {showRightColumn ? "← Back to Basic Settings" : "Time Quantum Setting →"}
+              </button>
+            )}
           </div>
-          <div className="h-[100%] flex justify-around">
-            {/* Left Column: Always visible */}
-            <div className="flex flex-col justify-around w-[50%] h-[95%]">
+          
+          <div className="flex flex-col lg:flex-row justify-around">
+            {/* Left Column inputs - hidden on mobile when showing right column */}
+            <div className={`flex flex-col justify-around gap-2 w-full lg:w-[50%] ${showRightColumn ? 'hidden lg:flex' : ''}`}>
               <InputField
                 label="Start Time"
                 inputId="startTime"
@@ -555,15 +584,16 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                 value={inputValues.priority}
               />
               <button
-                className="w-[70%] bg-[#55A972] mb-[0rem] hover:bg-[#3b7650] transition-all duration-300 ease-in-out transform h-[15%] rounded-md text-white font-medium text-[16pt]"
+                className="w-full lg:w-[70%] bg-[#55A972] hover:bg-[#3b7650] transition-all duration-300 ease-in-out transform py-2 rounded-md text-white font-medium text-sm sm:text-base md:text-lg lg:text-[16pt]"
                 onClick={addProcess}
               >
                 Add Process
               </button>
             </div>
-            {/* Right Column: Rendered based on selected algorithms */}
+            
+            {/* Right Column - shown on mobile only when toggled, always visible on desktop */}
             <div
-              className="flex flex-col justify-start gap-y-3 p-2 w-[60%] h-auto overflow-visible"
+              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${showRightColumn || !showRoundRobin && !showMLQF ? '' : 'hidden lg:flex'}`}
             >
               {showRoundRobin && (
                 <InputField
@@ -616,23 +646,24 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
             </div>
           </div>
         </div>
-        {/* คอลัมน์ขวาสุด (Process List) */}
-        <div className="w-[55%] flex flex-col">
+        
+        {/* Right column (Process List) */}
+        <div className="w-full lg:w-[55%] flex flex-col">
           {/* Process List Header */}
-          <div className="flex justify-between items-center mb-3">
-            <h1 className="font text-[15pt]">Process List</h1>
+          <div className="flex justify-between items-center mb-2 sm:mb-3">
+            <h1 className="font-medium text-sm sm:text-base md:text-lg lg:text-[15pt]">Process List</h1>
             <button
-              className="bg-[#8AB6D6] hover:bg-[#6494b5] px-4 py-1 rounded-md text-white text-[12pt]"
+              className="bg-[#8AB6D6] hover:bg-[#6494b5] px-2 sm:px-4 py-1 rounded-md text-white text-xs sm:text-sm md:text-base lg:text-[12pt]"
               onClick={resetProcessList}
             >
               reset
             </button>
           </div>
 
-          {/* ส่วนการแสดงผลตาราง - ปรับ layout เป็น flex column ที่ชัดเจน */}
-          <div className="flex flex-col h-[calc(100%-120px)]"> {/* กำหนดความสูงโดยการคำนวณเพื่อเหลือพื้นที่สำหรับ bottom controls */}
-            {/* Header ของตาราง */}
-            <div className="grid grid-cols-[20px_0.5fr_1fr_1fr_1fr_1fr_1fr] bg-[#8AB6D6] py-3 px-3 text-[12pt] font-bold text-center sticky top-0 z-10 rounded-t-md">
+          {/* Table container with responsive design */}
+          <div className="flex flex-col h-[calc(100%-150px)] sm:h-[calc(100%-120px)]">
+            {/* Table header */}
+            <div className="grid grid-cols-[20px_0.5fr_1fr_1fr_1fr_1fr_1fr] bg-[#8AB6D6] py-2 px-2 text-xs sm:text-sm md:text-base lg:text-[12pt] font-bold text-center sticky top-0 z-10 rounded-t-md overflow-x-auto">
               <div></div>
               <div>Process ID</div>
               <div>Start Time</div>
@@ -642,17 +673,17 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
               <div>Time Quantum(MLQF)</div>
             </div>
 
-            {/* เนื้อหาของตาราง - ส่วนที่ scrollable */}
-            <div className="flex-1 overflow-y-auto bg-[#D9E6F2] rounded-b-md shadow-md">
+            {/* Table content */}
+            <div className="flex-1 overflow-y-auto overflow-x-auto bg-[#D9E6F2] rounded-b-md shadow-md">
               {processList.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
+                <div className="text-center py-4 text-gray-500 text-sm sm:text-base">
                   No processes added yet
                 </div>
               ) : (
                 processList.map((process) => (
                   <div
                     key={process.id}
-                    className="grid grid-cols-[20px_0.5fr_1fr_1fr_1fr_1fr_1fr] py-3 px-3 text-[11pt] text-center bg-white border-b border-gray-200"
+                    className="grid grid-cols-[20px_0.5fr_1fr_1fr_1fr_1fr_1fr] py-2 px-2 text-xs sm:text-sm md:text-base lg:text-[11pt] text-center bg-white border-b border-gray-200"
                   >
                     <div className="flex justify-center items-center">
                       <button
@@ -661,7 +692,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
+                          className="h-4 w-4 sm:h-5 sm:w-5"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -687,10 +718,10 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
             </div>
           </div>
 
-          {/* ส่วนล่างของ Process List - แยกออกมาจากส่วน scrollable ชัดเจน */}
-          <div className="mt-4 pt-2 flex justify-between items-center">
-            <div className="relative bg-[#D9E6F2] rounded-md py-2 px-4 flex items-center">
-              <span className="text-[14pt] font-medium mr-2">
+          {/* Bottom controls */}
+          <div className="mt-3 pt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div className="relative bg-[#D9E6F2] rounded-md py-1 sm:py-2 px-2 sm:px-4 flex items-center w-full sm:w-auto">
+              <span className="text-xs sm:text-sm md:text-base lg:text-[14pt] font-medium mr-1 sm:mr-2 whitespace-nowrap">
                 Number of Generate Process:
               </span>
               <input
@@ -698,23 +729,25 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                 id="numberOfProcess"
                 value={inputValues.numberOfProcess}
                 onChange={(e) => validateInput(e, "numberOfProcess")}
-                className="w-12 py-1 px-2 bg-white rounded border border-gray-300 text-center text-[16pt]"
+                className="w-8 sm:w-12 py-1 px-1 sm:px-2 bg-white rounded border border-gray-300 text-center text-xs sm:text-sm md:text-base lg:text-[16pt]"
               />
             </div>
 
-            <button
-              className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-2 px-4 rounded-md text-white font-medium text-[14pt]"
-              onClick={generateRandomProcesses}
-            >
-              Generate Process
-            </button>
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
+              <button
+                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-1 sm:py-2 px-2 sm:px-4 rounded-md text-white font-medium text-xs sm:text-sm md:text-base lg:text-[14pt] whitespace-nowrap"
+                onClick={generateRandomProcesses}
+              >
+                Generate Process
+              </button>
 
-            <button
-              className="bg-[#3F72AF] hover:bg-[#2d5682] py-2 px-4 rounded-md text-white font-medium text-[14pt]"
-              onClick={startSimulation}
-            >
-              Start Simulation
-            </button>
+              <button
+                className="bg-[#3F72AF] hover:bg-[#2d5682] py-1 sm:py-2 px-2 sm:px-4 rounded-md text-white font-medium text-xs sm:text-sm md:text-base lg:text-[14pt] whitespace-nowrap"
+                onClick={startSimulation}
+              >
+                Start Simulation
+              </button>
+            </div>
           </div>
         </div>
       </div>

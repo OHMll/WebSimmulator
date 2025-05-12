@@ -78,4 +78,5 @@ export default function Hrrn(input) {
   }
 
   return [waitingTimes, turnaroundTimes, executionOrder];
+
 }
