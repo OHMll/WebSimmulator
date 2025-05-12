@@ -20,21 +20,25 @@ const InputField = ({
   readOnly,
   noPlaceholder,
 }) => {
-  // Responsive padding and width based on screen size
-  let inputPadding = isRight ? "pl-12 sm:pl-16 md:pl-20 lg:pl-24" : "pl-16 sm:pl-20 md:pl-24 lg:pl-32";
+  // Responsive padding and width based on screen size - ปรับค่า padding ให้เพิ่มขึ้น
+  let inputPadding = isRight ? "pl-14 sm:pl-20 md:pl-24 lg:pl-28" : "pl-20 sm:pl-24 md:pl-28 lg:pl-36";
   let labelClass = isRight ? "w-24 sm:w-32 md:w-40 lg:w-48 whitespace-nowrap" : "";
   let inputWidth = isRight ? "w-full sm:w-[60%]" : "w-full sm:w-[70%]";
+  
+  // คงคำว่า e.g. ไว้ในข้อความ placeholder
+  let placeholder = noPlaceholder ? "" : "e.g. 1,2,3";
 
   // Special adjustments for specific fields
-  if (inputId === "timeQuantumMLOF") {
-    labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
-    inputPadding = "pl-44 sm:pl-52 md:pl-60 lg:pl-72"; 
-    inputWidth = "w-full sm:w-[80%] md:w-[90%]"; 
-  }
+if (inputId === "timeQuantumMLOF") {
+  labelClass = "w-48 sm:w-56 md:w-64 lg:w-80 whitespace-nowrap"; // เพิ่มความกว้างของ label ให้มากขึ้น
+  inputPadding = "pl-52 sm:pl-60 md:pl-72 lg:pl-86"; // เพิ่ม padding-left ของ input ให้มากขึ้น
+  inputWidth = "w-full sm:w-[85%] md:w-[90%]"; 
+}
   if (inputId === "timeQuantumRR") {
     labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
-    inputPadding = "pl-32 sm:pl-40 md:pl-44 lg:pl-52"; 
-    inputWidth = "w-full sm:w-[80%] md:w-[90%]"; 
+    inputPadding = "pl-36 sm:pl-44 md:pl-48 lg:pl-56"; 
+    inputWidth = "w-full sm:w-[80%] md:w-[90%]";
+    placeholder = "e.g. 1,2,3";
   }
 
   return (
@@ -47,14 +51,14 @@ const InputField = ({
         </span>
         <input
           type="text"
-          placeholder={noPlaceholder ? "" : "e.g. 1,2,3"}
-          pattern="^[0-9]{0,2}$"
+          placeholder={placeholder}
+          pattern="^[0-9]*$"
           maxLength="2"
           value={value}
           readOnly={readOnly}
           onChange={(e) => validateInput(e, inputId)}
           onInput={(e) => validateInput(e, inputId)}
-          className={`${inputPadding} pr-2 sm:pr-3 md:pr-5 py-2 sm:py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-xs sm:text-sm md:text-base lg:text-[12pt] shadow-md placeholder-slate-400
+          className={`${inputPadding} pr-4 sm:pr-5 md:pr-6 py-2 sm:py-3 bg-[#3F72AF4D] rounded-md border-slate-300 text-xs sm:text-sm md:text-base lg:text-[12pt] shadow-md placeholder-gray-400
             focus:outline-none focus:ring-2 focus:ring-[#3F72AF]
             invalid:border-[#FA494C] invalid:text-[#FA494C] invalid:bg-[#FFC9CA]
             focus:invalid:border-[#FA494C] focus:invalid:ring-[#FA494C]
@@ -542,13 +546,13 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           <div>
             <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize Parameter</h1>
             
-            {/* Mobile view toggle button */}
+            {/* Mobile view toggle button - Changed text from "Advanced Settings" to "Time Quantum Setting" */}
             {(showRoundRobin || showMLQF) && (
               <button 
                 className="lg:hidden mb-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
                 onClick={toggleRightColumn}
               >
-                {showRightColumn ? "← Back to Basic Settings" : "Advanced Settings →"}
+                {showRightColumn ? "← Back to Basic Settings" : "Time Quantum Setting →"}
               </button>
             )}
           </div>
