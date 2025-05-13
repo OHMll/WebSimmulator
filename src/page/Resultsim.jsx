@@ -13,7 +13,7 @@ function Resultsim() {
   const [currentPage, setCurrentPage] = useState(0);
   const [algorithmResults, setAlgorithmResults] = useState([]);
   const [zoomedChart, setZoomedChart] = useState(null);
-  const cardsPerPage = 4;
+  const cardsPerPage = 3;
 
   useEffect(() => {
     const storedResults = localStorage.getItem("simulationResults");
@@ -94,7 +94,7 @@ const renderZoomModal = () => {
         onClick={(e) => e.stopPropagation()}
       >
           <h2 className="text-xl font-bold mb-4">
-            {name} - Gantt Chart (Zoomed)
+            {name} - Gantt Chart
           </h2>
         <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
           {renderGanttChart(contextData, true)}
@@ -130,10 +130,13 @@ const renderAlgorithmCards = () => {
         <div className="flex flex-wrap justify-center gap-[2%] md:hidden w-full max-w-full mx-auto">
           {currentAlgorithms.map((algoData, idx) => {
             const algo = algoData.name;
+            const isSingleCard = currentAlgorithms.length === 1; // ตรวจสอบว่ามีการ์ดเดียวหรือไม่
             return (
               <div
                 key={`mobile-${algo}-${idx}`}
-                className="bg-white rounded-lg shadow-md overflow-hidden w-[48%] mb-4 flex-shrink-0"
+                className={`bg-white rounded-lg shadow-md overflow-hidden ${
+                  isSingleCard ? "w-[95%]" : "w-[48%]"
+                } mb-4 flex-shrink-0`} // ปรับความกว้างเมื่อมีการ์ดเดียว
                 style={{ height: "280px", minHeight: "280px" }}
               >
                 <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
@@ -171,10 +174,9 @@ const renderAlgorithmCards = () => {
             const algo = algoData.name;
             // ปรับขนาดการ์ดตามจำนวน
             let cardWidth = "w-full";
-            if (currentAlgorithms.length === 1) cardWidth = "w-[60%]";
-            if (currentAlgorithms.length === 2) cardWidth = "w-[70%]";
-            if (currentAlgorithms.length === 3) cardWidth = "w-[85%]";
-            // 4 ขึ้นไป w-full
+            if (currentAlgorithms.length === 1) cardWidth = "w-[70%]";
+            if (currentAlgorithms.length === 2) cardWidth = "w-[80%]";
+            if (currentAlgorithms.length === 3) cardWidth = "w-[95%]";
 
             return (
               <div

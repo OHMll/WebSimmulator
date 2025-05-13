@@ -173,6 +173,17 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     }));
   };
 
+  const formatProcessId = (id) => {
+    // แปลง id เป็นตัวเลข
+    const numId = parseInt(id);
+    // ถ้าเป็นเลขหลักเดียว เพิ่ม 00
+    if (numId < 10) {
+      return `00${numId}`;
+    }
+    // ถ้าเป็นเลขสองหลักขึ้นไป เพิ่ม 0
+    return `0${numId}`;
+  };
+
   const addProcess = () => {
     // ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่
     if (
@@ -186,7 +197,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
 
     // สร้าง process ใหม่
     const newProcess = {
-      id: `00${processIdCounter}`,
+      id: formatProcessId(processIdCounter),
       startTime: inputValues.startTime,
       burstTime: inputValues.burstTime,
       priority: inputValues.priority,
@@ -238,7 +249,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     if (isGenerating) return;
     setIsGenerating(true);
     const count = parseInt(inputValues.numberOfProcess) || 3;
-    if (count <= 0 || count > 10) {
+    if (count <= 0) { //ใส่เท่าไหร่ก็ได้
       alert("Please enter a valid number between 1 and 10");
       setIsGenerating(false);
       return;
@@ -261,7 +272,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     const newProcesses = [];
     for (let i = 0; i < count; i++) {
       newProcesses.push({
-        id: `00${startId + i}`,
+        id: formatProcessId(startId + i),
         startTime: Math.floor(Math.random() * 10),
         burstTime: Math.floor(Math.random() * 10) + 1,
         priority: Math.floor(Math.random() * 10),
@@ -497,9 +508,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
         algorithmData // Store all algorithm data
       }));
       
-      console.log(`Simulation completed!`);
-      alert(`${algorithm} simulation completed! Check results in the Results page.`);
-      
+      console.log(`Simulation completed!`);      
       // บันทึกข้อมูล process list ใหม่อีกครั้งก่อนไปหน้า results
       localStorage.setItem("processList", JSON.stringify(processList));
       
@@ -534,7 +543,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
 
   return (
     <div className="w-full h-[90%]">
-      <div className="pl-3 text-base sm:text-lg md:text-xl lg:text-[20pt] font-bold">
+      <div className="pl-3 pb-3 text-base sm:text-lg md:text-xl lg:text-[20pt] font-bold">
         <h1>Parameter Setting</h1>
       </div>
       
@@ -544,7 +553,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
         {/* Left column (Parameter settings) */}
         <div className="w-full lg:w-[45%] mb-4 lg:mb-0">
           <div>
-            <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize Parameter</h1>
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize parameters</h1>
             
             {/* Mobile view toggle button - Changed text from "Advanced Settings" to "Time Quantum Setting" */}
             {(showRoundRobin || showMLQF) && (
@@ -649,7 +658,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
         <div className="w-full lg:w-[55%] flex flex-col">
           {/* Process List Header */}
           <div className="flex justify-between items-center mb-2 sm:mb-3">
-            <h1 className="font-medium text-sm sm:text-base md:text-lg lg:text-[15pt]">Process List</h1>
+            <h1 className="font-medium text-sm sm:text-base md:text-lg lg:text-[15pt]">Process lists</h1>
             <button
               className="bg-[#8AB6D6] hover:bg-[#6494b5] px-2 sm:px-4 py-1 rounded-md text-white text-xs sm:text-sm md:text-base lg:text-[12pt]"
               onClick={resetProcessList}
@@ -727,13 +736,13 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                 id="numberOfProcess"
                 value={inputValues.numberOfProcess}
                 onChange={(e) => validateInput(e, "numberOfProcess")}
-                className="w-8 sm:w-12 py-1 px-1 sm:px-2 bg-white rounded border border-gray-300 text-center text-xs sm:text-sm md:text-base lg:text-[16pt]"
+                className="w-8 sm:w-12 py-1 px-1 sm:px-2 bg-white rounded border border-gray-300 text-center text-xs sm:text-sm md:text-base lg:text-[12pt]"
               />
             </div>
 
             <div className="flex flex-wrap gap-2 justify-center sm:justify-end w-full sm:w-auto">
               <button
-                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-1 sm:py-2 px-2 sm:px-4 rounded-md text-white font-medium text-xs sm:text-sm md:text-base lg:text-[14pt] whitespace-nowrap"
+                className="bg-[#3F72AF] py-1 sm:py-2 px-2 sm:px-4 rounded-md text-white font-medium text-xs sm:text-sm md:text-base lg:text-[14pt] whitespace-nowrap"
                 onClick={generateRandomProcesses}
               >
                 Generate Process

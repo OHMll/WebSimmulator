@@ -29,23 +29,29 @@ function Home() {
   // ส่วนของ IconSlider
   const IconSlider = () => {
     const images = [
-      <img
-        key="elephant"
-        src={Elephant || "/placeholder.svg"}
-        alt="Elephant"
-        className="w-full h-full object-cover rounded-lg"
+      <video
+        key="Step1-video"
+        src="./src/img/Step1.mp4" // ใส่ path ของวิดีโอที่ต้องการ
+        className="w-full h-full object-fit rounded-lg"
+        autoPlay
+        loop
+        muted
       />,
-      <img
-        key="cat1"
-        src={Cat1 || "/placeholder.svg"}
-        alt="Cat1"
-        className="w-full h-full object-cover rounded-lg"
+      <video
+        key="Step2-video"
+        src="./src/img/Step2.mp4" // ใส่ path ของวิดีโอที่ต้องการ
+        className="w-full h-full object-fit rounded-lg"
+        autoPlay
+        loop
+        muted
       />,
-      <img
-        key="cat2"
-        src={Cat2 || "/placeholder.svg"}
-        alt="Cat2"
-        className="w-full h-full object-cover rounded-lg"
+      <video
+        key="Step3-video"
+        src="./src/img/Step3.mp4" // ใส่ path ของวิดีโอที่ต้องการ
+        className="w-full h-full object-fit rounded-lg"
+        autoPlay
+        loop
+        muted
       />,
     ];
 
@@ -54,7 +60,7 @@ function Home() {
     useEffect(() => {
       const interval = setInterval(() => {
         setCurrentIconIndex((prevIndex) => (prevIndex + 1) % images.length); // วนลูปจากรูปสุดท้ายไปยังรูปแรก
-      }, 7000); // เปลี่ยนไอคอนทุก 7 วินาที
+      }, 15000); // เปลี่ยนไอคอนทุก 7 วินาที
 
       return () => clearInterval(interval); // ทำความสะอาดเมื่อ component ถูกลบ
     }, []);
@@ -94,8 +100,8 @@ function Home() {
 
   return (
     <div className="container mx-auto mt-2 md:mt-5 pt-2 md:pt-5 px-4 md:px-5 lg:px-8 relative max-w-7xl">
-      <h1 className="text-xl md:text-2xl lg:text-[26pt] font-bold text-center z-30 mb-4 md:mb-6">
-        Welcome to Website For Process Scheduling
+      <h1 className="text-xl md:text-2xl lg:text-[26pt] font-bold text-center z-30 mb-4 md:mb-6 leading-relaxed">
+       Process Scheduling Simulation Platform for Operating Systems
       </h1>
 
       {/* ส่วนหลักของเนื้อหา - ปรับตัวตามขนาดหน้าจอ */}
@@ -104,13 +110,13 @@ function Home() {
         <div className="w-full lg:w-[48%] h-auto rounded-[1rem] bg-[#FFFFFF] shadow-md flex flex-col p-4 md:p-6 lg:p-8 justify-center">         
           <div className="space-y-4 md:space-y-6 lg:space-y-8">
             <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">
-              <span>Step 1 : Choose Process Schedule</span>
+              <span>Step 1 : Choose process schedule</span>
             </p>
             <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">
-              <span>Step 2 : Setting Parameters</span>
+              <span>Step 2 : Setting parameters</span>
             </p>
             <p className="text-base md:text-lg lg:text-xl py-2 md:py-3 transition ease-in-out delay-50 duration-500 hover:scale-105 hover:text-blue-500 flex items-center">              
-              <span>Step 3 : Press Start Button to Simulate</span>
+              <span>Step 3 : Press " Start Simulation " button to simulate</span>
             </p>
           </div>
         </div>

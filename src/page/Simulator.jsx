@@ -5,7 +5,7 @@ function Simulator() {
   const [selectedAlgo, setSelectedAlgo] = useState([]);
 
   const algorithms = [
-    "First Come First Serve",
+    "First-Come First-Serve",
     "Highest Response Ratio Next",
     "Shortest Remaining Time First",
     "Multilevel Queue With Feedback",
@@ -38,7 +38,7 @@ function Simulator() {
     <div className="px-3 sm:px-5 pt-4 sm:pt-7 h-screen sm:h-[80vh] flex flex-col">
       <div className="mb-4 sm:mb-0 sm:h-[10%] flex items-center gap-2 sm:gap-4 p-1 sm:p-2">
         <h3 className="text-lg sm:text-xl md:text-2xl lg:text-[20pt] font-bold">
-          Choose Schedule Algorithm
+          Choose Schedule Algorithms
         </h3>
       </div>
       <div className="sm:h-[25%] flex items-center overflow-x-auto sm:overflow-visible">

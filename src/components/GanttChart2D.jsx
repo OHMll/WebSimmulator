@@ -81,9 +81,9 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
     const processIds = Object.keys(processGroups).sort((a, b) => parseInt(a) - parseInt(b));
     
     // Calculate layout dimensions
-    const paddingX = 20; // Reduced padding further
+    const paddingX = 20;
     const paddingTop = 40;
-    const labelWidth = 40; // Adjusted for better visibility
+    const labelWidth = isZoomed ? 70 : 40; // เพิ่มพื้นที่ให้ Process ID เมื่อ Zoom
     const rowHeight = 35;
     const timelineHeight = 30;
     
@@ -97,7 +97,22 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
     
     // Set canvas height to match content height
     canvas.height = totalContentHeight;
-    
+
+    // Define font sizes and styles based on zoom state and screen size
+    const isMobile = window.innerWidth <= 768; // ตรวจสอบว่าเป็น Mobile หรือไม่
+    const fontSize = {
+      label: isMobile ? '12px Arial' : 'bold 15px Arial', // ฟอนต์เล็กลงใน Mobile
+      timeline: isMobile ? '12px Arial' : 'bold 16px Arial', // ฟอนต์เล็กลงใน Mobile
+      timeMarker: isMobile ? '10px Arial' : 'bold 14px Arial' // ฟอนต์เล็กลงใน Mobile
+    };
+
+    // ถ้าเป็นโหมด Zoom ให้ใช้ขนาดที่ใหญ่กว่า
+    if (isZoomed) {
+      fontSize.label = isMobile ? '14px Arial' : 'bold 18px Arial'; // ฟอนต์เล็กลงใน Mobile เมื่อ Zoom
+      fontSize.timeline = isMobile ? '14px Arial' : 'bold 20px Arial';
+      fontSize.timeMarker = isMobile ? '12px Arial' : 'bold 16px Arial';
+    }
+
     // Define drawing functions
     const drawTimeline = (currentTime) => {
       ctx.save();
@@ -114,11 +129,12 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       // Draw time markers
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.font = '10px Arial';
+      ctx.font = fontSize.timeMarker;
       ctx.fillStyle = '#34495e';
 
-      // Calculate time interval dynamically based on maxTime and available width
-      const minInterval = Math.ceil(maxTime / 10);
+      // Calculate time interval dynamically based on screen size
+      const isMobile = window.innerWidth <= 768; // ตรวจสอบว่าเป็น Mobile หรือไม่
+      const minInterval = Math.ceil(maxTime / (isMobile ? 4 : 10)); // ลดช่วงเวลาใน Mobile
       const timeInterval = Math.max(1, minInterval);
 
       for (let i = 0; i <= Math.ceil(maxTime); i += timeInterval) {
@@ -169,13 +185,15 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
         const y = paddingTop + timelineHeight + index * rowHeight;
         ctx.fillStyle = index % 2 === 0 ? '#f8f9fa' : '#ecf0f2';
         ctx.fillRect(labelWidth + paddingX, y, timeScale * (maxTime + 1), rowHeight);
+        
+        // วาด Process ID
         ctx.fillStyle = '#2c3e50';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = fontSize.label; // ใช้ฟอนต์ที่ปรับตามโหมดและขนาดหน้าจอ
         ctx.fillText(
           `P${processId}`,
-          labelWidth / 2,
+          labelWidth / 2 + (isZoomed ? 15 : 0), // เพิ่มระยะห่างจากขอบซ้ายเมื่อ Zoom
           y + rowHeight / 2
         );
       });
@@ -231,7 +249,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
               ctx.fillStyle = 'white';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.font = '10px Arial';
+              ctx.font = fontSize.timeMarker;
               ctx.fillText(startTime.toFixed(1), blockX + activeBlockWidth / 2, blockY + blockHeight / 2);
             }
           } else if (currentTime >= endTime) {
@@ -250,7 +268,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
               ctx.fillStyle = 'white';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.font = '10px Arial';
+              ctx.font = fontSize.timeMarker;
               ctx.fillText(`${startTime.toFixed(1)} → ${endTime.toFixed(1)}`, 
                 blockX + blockWidth / 2, blockY + blockHeight / 2);
             }
@@ -351,7 +369,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [scheduleData, canvasSize, isPlaying, speed]);
+  }, [scheduleData, canvasSize, isPlaying, speed, isZoomed]);
   
   const togglePlayPause = () => {
     setIsPlaying((prev) => !prev);
@@ -424,7 +442,13 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
         </button>
       </div>
       
-      <div className="absolute bottom-2 right-2 flex items-center bg-white p-1 rounded shadow z-10 text-[10px] md:text-xs">
+      <div 
+        className={`flex items-center bg-white p-1 rounded shadow z-10 text-[10px] md:text-xs ${
+          isZoomed 
+            ? "absolute top-2 right-2" 
+            : "absolute bottom-2 right-2"
+        }`}
+      >
         <span className="mr-1">Speed:</span>
         <button
           onClick={decreaseSpeed}
