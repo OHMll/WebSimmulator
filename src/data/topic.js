@@ -3,8 +3,7 @@ const topics = [
     id: 1,
     color: "#E2B03A",
     title: "Introduction to Operating Systems",
-    description:
-      "An Operating System (OS) is a software that acts as an intermediary between users and computer hardware. It manages hardware resources and provides services for application programs.",
+    description: "An Operating System (OS) is a software that acts as an intermediary between users and computer hardware. It manages hardware resources and provides services for application programs.",
     content: `
               **Computer System Structure
   Consists of hardware, operating system, application programs, and users.
@@ -36,14 +35,14 @@ const topics = [
   Includes monolithic, layered, microkernel, modular designs, and virtual machines.
         
 Operating Systems play a crucial role in controlling all activities and resources in a computer system.
-        `,
+        `
+
   },
   {
     id: 2,
     color: "#55A972",
     title: "Processes and Threads",
-    description:
-      "Covers the concepts of processes, threads, and how they are managed.",
+    description: "Covers the concepts of processes, threads, and how they are managed.",
     content: `
 **Process
   A process is a program in execution. It includes the program code, current activity, stack, heap, and data section.     
@@ -70,14 +69,14 @@ Operating Systems play a crucial role in controlling all activities and resource
   Faster context switch
   Lower overhead compared to full processes
   Easier interthread communication
-        `,
-  },
+        `
+  }
+  ,
   {
     id: 3,
     color: "#D97B41",
     title: "Process Scheduling",
-    description:
-      "Covers CPU scheduling algorithms and criteria to optimize process execution.",
+    description: "Covers CPU scheduling algorithms and criteria to optimize process execution.",
     content: `
 **CPU Scheduler
   Picks a process from the ready queue for execution.
@@ -115,20 +114,15 @@ Operating Systems play a crucial role in controlling all activities and resource
 **RealTime Scheduling
   Hard realtime: Must meet deadlines.
   Soft realtime: Tries to meet deadlines, not strict.
-<<<<<<< HEAD
       `
   }
-=======
-      `,
-  },
->>>>>>> 4c3e7c6a76edf00125dcc33daa24038d5bf446fa
 
+  ,
   {
     id: 4,
     color: "#5C78E6",
     title: "Concurrency Control",
-    description:
-      "Covers synchronization, race conditions, critical sections, and deadlock handling in multiprogramming environments.",
+    description: "Covers synchronization, race conditions, critical sections, and deadlock handling in multiprogramming environments.",
     content: `
 **Concurrency
   Concurrent processes may share resources, leading to complex interactions and potential data inconsistency.
@@ -150,7 +144,6 @@ Operating Systems play a crucial role in controlling all activities and resource
   Prevention: Avoid one or more of the necessary conditions.
   Avoidance: Use algorithms like Banker's Algorithm to stay in safe state.
   Detection & Recovery: Detect cycles in waitfor graph and resolve by aborting or preempting processes.
-<<<<<<< HEAD
       `
   }
   ,
@@ -160,17 +153,6 @@ Operating Systems play a crucial role in controlling all activities and resource
   title: "Memory Management",
   description: "Covers memory allocation, partitioning, address translation, segmentation, paging, and page table structures in operating systems.",
   content: `
-=======
-      `,
-  },
-  {
-    id: 5,
-    color: "#CE6FA8",
-    title: "Memory Management",
-    description:
-      "Covers memory allocation, partitioning, address translation, segmentation, paging, and page table structures in operating systems.",
-    content: `
->>>>>>> 4c3e7c6a76edf00125dcc33daa24038d5bf446fa
 **Responsibilities of Memory Management
   Allocates and deallocates memory to processes
   Tracks free and used space
@@ -204,22 +186,15 @@ Operating Systems play a crucial role in controlling all activities and resource
   Intel IA-32: segmentation + paging (4KB/4MB)
   ARMv8: multilevel paging
   Linux: 4-level paging for 64-bit systems
-<<<<<<< HEAD
   `
 }
 
   ,
-=======
-  `,
-  },
-
->>>>>>> 4c3e7c6a76edf00125dcc33daa24038d5bf446fa
   {
     id: 6,
     color: "#E85463",
     title: "Virtual Memory",
-    description:
-      "Virtual memory allows execution of processes not completely in main memory.",
+    description: "Virtual memory allows execution of processes not completely in main memory.",
     content: `
 **Definition
   Virtual memory is a memory management technique that provides an “illusion” of a very large main memory, enabling execution of large programs by loading only required parts into physical memory.
@@ -251,7 +226,8 @@ Operating Systems play a crucial role in controlling all activities and resource
   Shared Pages: allows code sharing between processes (e.g., text editor).
 
 Virtual memory improves resource utilization, process isolation, and execution efficiency.
-`,
+`
+
   },
  {
   id: 7,
@@ -291,58 +267,11 @@ Security is a continuous process that combines people, technology, and policy fo
   `
 },
   {
-<<<<<<< HEAD
   id: 8,
   title: "I/O Systems",
   color: "#6BA33D",
   description: "Covers hardware, DMA, kernel I/O subsystems, and performance optimizations.",
   content: `
-=======
-    id: 7,
-    color: "#8D6EEC",
-    title: "Security Foundation",
-    description:
-      "An overview of core security principles, threats, and defenses, including encryption, authentication, network and organizational protection, and best practices for building a secure computing environment.",
-    content: `
-**Security Principles
-  Protects data and systems through the CIA Triad:
-    Confidentiality: Keep data private.
-    Integrity: Ensure data is accurate.
-     Availability: Keep systems accessible.
-**Threats and Attacks
-  Includes malware, phishing, DoS, MitM, and web-based attacks like SQL injection and XSS.
-**Security Controls
-  Preventive: e.g., firewalls, encryption
-  Detective: e.g., IDS, monitoring
-  Corrective: e.g., backups, recovery
-**Encryption
-  Symmetric: Same key (fast)
-  Asymmetric: Public/private key (secure)
-  Hashing: Ensures data integrity
-**Authentication & Authorization
-  Authentication: Identity check
-  Authorization: Access control
-  MFA enhances protection
-**Network Security
-  Firewalls, VPNs, IDS/IPS, and segmentation prevent intrusion and contain breaches.
-**Organizational Security
-  Policies, training, response plans, and audits help build security culture.
-**Secure Software Development
-  Apply secure coding, validation, and OWASP practices from early SDLC stages.
-**Physical Security
-  Protect hardware with locks, surveillance, and environmental controls.
-
-Security is a continuous process that combines people, technology, and policy for long-term protection.
-  `,
-  },
-  {
-    id: 8,
-    title: "I/O Systems",
-    color: "#6BA33D",
-    description:
-      "Covers hardware, DMA, kernel I/O subsystems, and performance optimizations.",
-    content: `
->>>>>>> 4c3e7c6a76edf00125dcc33daa24038d5bf446fa
 **I/O Hardware
   Devices include storage, communication, and input devices
   Interfaces include PCIe, SATA, Fibre Channel
@@ -384,13 +313,8 @@ Security is a continuous process that combines people, technology, and policy fo
 **Performance Considerations
   Reduce context switches and interrupts
   Use DMA and efficient drivers for better throughput
-<<<<<<< HEAD
 `
 }
 ,
-=======
-`,
-  },
->>>>>>> 4c3e7c6a76edf00125dcc33daa24038d5bf446fa
 ];
 export default topics;
