@@ -687,15 +687,9 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
               )}
               {showMLQF && (
                 <>
-                  <InputField
-                    label="Level of Time Quantum in MLQF "
-                    inputId="timeQuantumMLOF"
-                    validateInput={validateInput}
-                    error={inputErrors.timeQuantumMLOF}
-                    readOnly
-                    noPlaceholder
-                    value="3"
-                  />
+                  <div className="text-sm sm:text-base md:text-lg lg:text-[13pt] font-medium">
+                    Level of Time Quantum in MLQF : 3
+                  </div>
                   <InputField
                     label="1st"
                     inputId="first"
