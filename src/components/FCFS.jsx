@@ -42,6 +42,5 @@ export default function Fcfs(input) {
     });
   
     return [wt, tat, contextData];
-    // return [wt, tat, contextData, gantt];
   }
   
