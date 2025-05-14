@@ -270,7 +270,8 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       rawBurstTimes.push(Math.floor(Math.random() * (200 - 5 + 1)) + 5);
     }
 
-    const averageBurstTime = rawBurstTimes.reduce((sum, bt) => sum + bt, 0) / rawBurstTimes.length;
+    const averageBurstTime =
+      rawBurstTimes.reduce((sum, bt) => sum + bt, 0) / rawBurstTimes.length;
 
     // ถ้ามี processList อยู่แล้ว ให้ใช้ Time Quantum เดิม
     if (processList.length > 0) {
@@ -279,7 +280,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     } else {
       // ถ้าไม่มี process ให้สุ่มใหม่
       rrQuantumRef.current = Math.floor(averageBurstTime / 4);
-      const randomFirst = Math.floor(Math.random() * (11)) + 1;
+      const randomFirst = Math.floor(Math.random() * 11) + 1;
       const randomSecond = randomFirst * 2;
       const randomThird = randomFirst * 4;
       mlqfQuantumRef.current = `${randomFirst},${randomSecond},${randomThird}`;
@@ -289,9 +290,9 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     for (let i = 0; i < count; i++) {
       newProcesses.push({
         id: formatProcessId(startId + i),
-        startTime: Math.floor(Math.random() * (51)),
+        startTime: Math.floor(Math.random() * 51),
         burstTime: rawBurstTimes[i],
-        priority: Math.floor(Math.random() * (50)) + 1,
+        priority: Math.floor(Math.random() * 50) + 1,
         timeQuantumRR: showRoundRobin ? rrQuantumRef.current.toString() : "-",
         timeQuantumMLQF: showMLQF ? mlqfQuantumRef.current : "-",
       });
@@ -323,7 +324,8 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       const algorithmData = [];
 
       // Run selected algorithm(s)
-      if (selectedAlgo.includes("First Come First Serve")) {
+      if (selectedAlgo.includes("First-Come First-Serve")) {
+        console.log(Fcfs(processData));
         algorithm = "FCFS";
         const [waitingTimes, turnaroundTimes, contextData] = Fcfs(processData);
 
