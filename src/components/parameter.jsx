@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import Fcfs from"./FCFS";
+import Fcfs from "./FCFS";
 import Hrrn from "./HRRN";
-import mlfq from "./MLQF"; 
+import mlfq from "./MLQF";
 import Priority from "./Priority";
 import RR from "./RR";
 import Sjf from "./SJF";
 import srtf from "./SRTF";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { avg } from "./AverageAlgo";
 
 // Component สำหรับ Input ที่มี label prefix และแสดง error
@@ -21,22 +21,26 @@ const InputField = ({
   noPlaceholder,
 }) => {
   // Responsive padding and width based on screen size - ปรับค่า padding ให้เพิ่มขึ้น
-  let inputPadding = isRight ? "pl-14 sm:pl-20 md:pl-24 lg:pl-28" : "pl-20 sm:pl-24 md:pl-28 lg:pl-36";
-  let labelClass = isRight ? "w-24 sm:w-32 md:w-40 lg:w-48 whitespace-nowrap" : "";
+  let inputPadding = isRight
+    ? "pl-14 sm:pl-20 md:pl-24 lg:pl-28"
+    : "pl-20 sm:pl-24 md:pl-28 lg:pl-36";
+  let labelClass = isRight
+    ? "w-24 sm:w-32 md:w-40 lg:w-48 whitespace-nowrap"
+    : "";
   let inputWidth = isRight ? "w-full sm:w-[60%]" : "w-full sm:w-[70%]";
-  
+
   // คงคำว่า e.g. ไว้ในข้อความ placeholder
   let placeholder = noPlaceholder ? "" : "e.g. 1,2,3";
 
   // Special adjustments for specific fields
-if (inputId === "timeQuantumMLOF") {
-  labelClass = "w-48 sm:w-56 md:w-64 lg:w-80 whitespace-nowrap"; // เพิ่มความกว้างของ label ให้มากขึ้น
-  inputPadding = "pl-52 sm:pl-60 md:pl-72 lg:pl-86"; // เพิ่ม padding-left ของ input ให้มากขึ้น
-  inputWidth = "w-full sm:w-[85%] md:w-[90%]"; 
-}
+  if (inputId === "timeQuantumMLOF") {
+    labelClass = "w-48 sm:w-56 md:w-64 lg:w-80 whitespace-nowrap"; // เพิ่มความกว้างของ label ให้มากขึ้น
+    inputPadding = "pl-52 sm:pl-60 md:pl-72 lg:pl-86"; // เพิ่ม padding-left ของ input ให้มากขึ้น
+    inputWidth = "w-full sm:w-[85%] md:w-[90%]";
+  }
   if (inputId === "timeQuantumRR") {
-    labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap"; 
-    inputPadding = "pl-36 sm:pl-44 md:pl-48 lg:pl-56"; 
+    labelClass = "w-40 sm:w-48 md:w-52 lg:w-60 whitespace-nowrap";
+    inputPadding = "pl-36 sm:pl-44 md:pl-48 lg:pl-56";
     inputWidth = "w-full sm:w-[80%] md:w-[90%]";
     placeholder = "e.g. 1,2,3";
   }
@@ -101,7 +105,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   const rrQuantumRef = useRef(null);
   const mlqfQuantumRef = useRef(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
   // State for mobile view management
   const [showRightColumn, setShowRightColumn] = useState(false);
 
@@ -124,7 +128,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
         if (savedProcessIdCounter) {
           setProcessIdCounter(parseInt(savedProcessIdCounter));
         }
-        
+
         // Set flag that initial load is done
         setInitialLoadDone(true);
       } catch (error) {
@@ -202,7 +206,11 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       burstTime: inputValues.burstTime,
       priority: inputValues.priority,
       timeQuantumRR: showRoundRobin ? inputValues.timeQuantumRR : "-",
-      timeQuantumMLQF: showMLQF ? `${inputValues.first || "1"},${inputValues.second || "2"},${inputValues.third || "3"}` : "-",
+      timeQuantumMLQF: showMLQF
+        ? `${inputValues.first || "1"},${inputValues.second || "2"},${
+            inputValues.third || "3"
+          }`
+        : "-",
     };
 
     // เพิ่ม process ใหม่เข้าไปใน list
@@ -216,7 +224,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       burstTime: "",
       priority: "",
     });
-    
+
     // Return to main inputs on mobile after adding
     setShowRightColumn(false);
   };
@@ -249,12 +257,20 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     if (isGenerating) return;
     setIsGenerating(true);
     const count = parseInt(inputValues.numberOfProcess) || 3;
-    if (count <= 0) { //ใส่เท่าไหร่ก็ได้
-      alert("Please enter a valid number between 1 and 10");
+    if (count <= 0) {
+      //ใส่เท่าไหร่ก็ได้
+      alert("Please enter a valid number");
       setIsGenerating(false);
       return;
     }
     let startId = processList.length === 0 ? 1 : processIdCounter;
+
+    const rawBurstTimes = [];
+    for (let i = 0; i < count; i++) {
+      rawBurstTimes.push(Math.floor(Math.random() * (200 - 5 + 1)) + 5);
+    }
+
+    const averageBurstTime = rawBurstTimes.reduce((sum, bt) => sum + bt, 0) / rawBurstTimes.length;
 
     // ถ้ามี processList อยู่แล้ว ให้ใช้ Time Quantum เดิม
     if (processList.length > 0) {
@@ -262,10 +278,10 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       mlqfQuantumRef.current = processList[0].timeQuantumMLQF;
     } else {
       // ถ้าไม่มี process ให้สุ่มใหม่
-      rrQuantumRef.current = Math.floor(Math.random() * 10) + 1;
-      const randomFirst = Math.floor(Math.random() * 5) + 1;
-      const randomSecond = Math.floor(Math.random() * 5) + 1;
-      const randomThird = Math.floor(Math.random() * 5) + 1;
+      rrQuantumRef.current = Math.floor(averageBurstTime / 4);
+      const randomFirst = Math.floor(Math.random() * (11)) + 1;
+      const randomSecond = randomFirst * 2;
+      const randomThird = randomFirst * 4;
       mlqfQuantumRef.current = `${randomFirst},${randomSecond},${randomThird}`;
     }
 
@@ -273,13 +289,14 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
     for (let i = 0; i < count; i++) {
       newProcesses.push({
         id: formatProcessId(startId + i),
-        startTime: Math.floor(Math.random() * 10),
-        burstTime: Math.floor(Math.random() * 10) + 1,
-        priority: Math.floor(Math.random() * 10),
+        startTime: Math.floor(Math.random() * (51)),
+        burstTime: rawBurstTimes[i],
+        priority: Math.floor(Math.random() * (50)) + 1,
         timeQuantumRR: showRoundRobin ? rrQuantumRef.current.toString() : "-",
         timeQuantumMLQF: showMLQF ? mlqfQuantumRef.current : "-",
       });
     }
+
     setProcessList([...processList, ...newProcesses]);
     setProcessIdCounter(startId + count);
     setIsGenerating(false);
@@ -290,30 +307,30 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       alert("Please add at least one process before starting simulation");
       return;
     }
-    
+
     // Transform process list data to the format needed by algorithms
     const processData = processList.map((process) => [
       process.id,
       parseInt(process.startTime),
       parseInt(process.burstTime),
-      parseInt(process.priority) // Include priority for algorithms that need it
+      parseInt(process.priority), // Include priority for algorithms that need it
     ]);
-    
+
     console.log("Input to algorithms:", processData);
-    
+
     try {
       let algorithm = "";
       const algorithmData = [];
-      
+
       // Run selected algorithm(s)
       if (selectedAlgo.includes("First Come First Serve")) {
         algorithm = "FCFS";
         const [waitingTimes, turnaroundTimes, contextData] = Fcfs(processData);
-        
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx เพื่อคำนวณค่าเฉลี่ย
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store FCFS results
         algorithmData.push({
           name: "FCFS",
@@ -321,22 +338,26 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("FCFS Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("FCFS Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Highest Response Ratio Next")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+HRRN" : "HRRN";
         const [waitingTimes, turnaroundTimes, contextData] = Hrrn(processData);
-        
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store HRRN results
         algorithmData.push({
           name: "HRRN",
@@ -344,22 +365,28 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("HRRN Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("HRRN Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Priority")) {
-        algorithm = selectedAlgo.length > 1 ? algorithm + "+Priority" : "Priority";
-        const [waitingTimes, turnaroundTimes, contextData] = Priority(processData);
-        
+        algorithm =
+          selectedAlgo.length > 1 ? algorithm + "+Priority" : "Priority";
+        const [waitingTimes, turnaroundTimes, contextData] =
+          Priority(processData);
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store Priority results
         algorithmData.push({
           name: "Priority",
@@ -367,14 +394,18 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("Priority Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("Priority Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Round Robin")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+RR" : "RR";
         // ดึง time quantum จาก processList ตัวแรกที่มีอยู่จริง
@@ -386,12 +417,15 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           alert("กรุณา Generate Process หรือกรอก Time Quantum ให้ถูกต้องก่อน");
           return;
         }
-        const [waitingTimes, turnaroundTimes, contextData] = RR(processData, timeQuantum);
-        
+        const [waitingTimes, turnaroundTimes, contextData] = RR(
+          processData,
+          timeQuantum
+        );
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store RR results
         algorithmData.push({
           name: "RR",
@@ -399,23 +433,27 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("RR Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("RR Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Shortest Job First")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+SJF" : "SJF";
-        
+
         const [waitingTimes, turnaroundTimes, contextData] = Sjf(processData);
-        
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store SJF results
         algorithmData.push({
           name: "SJF",
@@ -423,23 +461,27 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("SJF Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("SJF Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Shortest Remaining Time First")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+SRTF" : "SRTF";
-        
+
         const [waitingTimes, turnaroundTimes, contextData] = srtf(processData);
-        
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store SRTF results
         algorithmData.push({
           name: "SRTF",
@@ -447,24 +489,30 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("SRTF Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("SRTF Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       if (selectedAlgo.includes("Multilevel Queue With Feedback")) {
         algorithm = selectedAlgo.length > 1 ? algorithm + "+MLQF" : "MLQF";
-        
+
         // ดึง time quantum MLQF จาก processList ตัวแรกที่มีอยู่จริง
         let mlqfQuantum = null;
         if (processList.length > 0) {
           mlqfQuantum = processList[0].timeQuantumMLQF;
         }
         if (!mlqfQuantum) {
-          alert("กรุณา Generate Process หรือกรอก Time Quantum MLQF ให้ถูกต้องก่อน");
+          alert(
+            "กรุณา Generate Process หรือกรอก Time Quantum MLQF ให้ถูกต้องก่อน"
+          );
           return;
         }
         // แยกค่า MLQF เป็น t1, t2, t3
@@ -473,12 +521,17 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           alert("Time Quantum MLQF ไม่ถูกต้อง กรุณาตรวจสอบข้อมูล");
           return;
         }
-        const [waitingTimes, turnaroundTimes, contextData] = mlfq(processData, t1, t2, t3);
-        
+        const [waitingTimes, turnaroundTimes, contextData] = mlfq(
+          processData,
+          t1,
+          t2,
+          t3
+        );
+
         // ใช้ฟังก์ชั่น avg() จาก AverageAlgo.jsx
         const avgWaitingTime = avg(waitingTimes);
         const avgTurnaroundTime = avg(turnaroundTimes);
-        
+
         // Store MLQF results
         algorithmData.push({
           name: "MLQF",
@@ -486,40 +539,47 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
           turnaroundTimes,
           contextData,
           avgWaitingTime,
-          avgTurnaroundTime
+          avgTurnaroundTime,
         });
-        
-        console.log("MLQF Results:", { waitingTimes, turnaroundTimes, contextData });
+
+        console.log("MLQF Results:", {
+          waitingTimes,
+          turnaroundTimes,
+          contextData,
+        });
         console.log("AvgW: ", avgWaitingTime);
         console.log("AvgT: ", avgTurnaroundTime);
       }
-      
+
       // Get the last algorithm's results for backward compatibility
       const lastAlgo = algorithmData[algorithmData.length - 1];
-      
+
       // Store results in localStorage
-      localStorage.setItem("simulationResults", JSON.stringify({
-        algorithm,
-        waitingTimes: lastAlgo.waitingTimes,
-        turnaroundTimes: lastAlgo.turnaroundTimes,
-        contextData: lastAlgo.contextData,
-        avgWaitingTime: lastAlgo.avgWaitingTime,
-        avgTurnaroundTime: lastAlgo.avgTurnaroundTime,
-        algorithmData // Store all algorithm data
-      }));
-      
-      console.log(`Simulation completed!`);      
+      localStorage.setItem(
+        "simulationResults",
+        JSON.stringify({
+          algorithm,
+          waitingTimes: lastAlgo.waitingTimes,
+          turnaroundTimes: lastAlgo.turnaroundTimes,
+          contextData: lastAlgo.contextData,
+          avgWaitingTime: lastAlgo.avgWaitingTime,
+          avgTurnaroundTime: lastAlgo.avgTurnaroundTime,
+          algorithmData, // Store all algorithm data
+        })
+      );
+
+      console.log(`Simulation completed!`);
       // บันทึกข้อมูล process list ใหม่อีกครั้งก่อนไปหน้า results
       localStorage.setItem("processList", JSON.stringify(processList));
-      
+
       // Navigate to results page
-      navigate('/resultsim');
+      navigate("/resultsim");
     } catch (error) {
       console.error("Error during simulation:", error);
       alert("An error occurred during simulation: " + error.message);
     }
   };
-  
+
   // ตรวจสอบเงื่อนไขของอัลกอริทึมที่เลือก
   const showRoundRobin = selectedAlgo.includes("Round Robin");
   const showMLQF = selectedAlgo.includes("Multilevel Queue With Feedback");
@@ -546,29 +606,36 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       <div className="pl-3 pb-3 text-base sm:text-lg md:text-xl lg:text-[20pt] font-bold">
         <h1>Parameter Setting</h1>
       </div>
-      
+
       {/* Main content container */}
       <div className="h-[95%] flex flex-col lg:flex-row justify-around p-2 sm:p-3 md:p-4 lg:p-5 rounded-lg bg-[#FFFFFF90] gap-2 sm:gap-3 md:gap-4 overflow-y-auto lg:overflow-hidden">
-        
         {/* Left column (Parameter settings) */}
         <div className="w-full lg:w-[45%] mb-4 lg:mb-0">
           <div>
-            <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">Customize parameters</h1>
-            
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-[14pt] pb-2 sm:pb-3">
+              Customize parameters
+            </h1>
+
             {/* Mobile view toggle button - Changed text from "Advanced Settings" to "Time Quantum Setting" */}
             {(showRoundRobin || showMLQF) && (
-              <button 
+              <button
                 className="lg:hidden mb-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm"
                 onClick={toggleRightColumn}
               >
-                {showRightColumn ? "← Back to Basic Settings" : "Time Quantum Setting →"}
+                {showRightColumn
+                  ? "← Back to Basic Settings"
+                  : "Time Quantum Setting →"}
               </button>
             )}
           </div>
-          
+
           <div className="flex flex-col lg:flex-row justify-around">
             {/* Left Column inputs - hidden on mobile when showing right column */}
-            <div className={`flex flex-col justify-around gap-2 w-full lg:w-[50%] ${showRightColumn ? 'hidden lg:flex' : ''}`}>
+            <div
+              className={`flex flex-col justify-around gap-2 w-full lg:w-[50%] ${
+                showRightColumn ? "hidden lg:flex" : ""
+              }`}
+            >
               <InputField
                 label="Start Time"
                 inputId="startTime"
@@ -597,10 +664,14 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                 Add Process
               </button>
             </div>
-            
+
             {/* Right Column - shown on mobile only when toggled, always visible on desktop */}
             <div
-              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${showRightColumn || !showRoundRobin && !showMLQF ? '' : 'hidden lg:flex'}`}
+              className={`flex flex-col justify-start gap-y-2 sm:gap-y-3 py-1 px-1 sm:p-2 w-full lg:w-[60%] ${
+                showRightColumn || (!showRoundRobin && !showMLQF)
+                  ? ""
+                  : "hidden lg:flex"
+              }`}
             >
               {showRoundRobin && (
                 <InputField
@@ -653,12 +724,14 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
             </div>
           </div>
         </div>
-        
+
         {/* Right column (Process List) */}
         <div className="w-full lg:w-[55%] flex flex-col">
           {/* Process List Header */}
           <div className="flex justify-between items-center mb-2 sm:mb-3">
-            <h1 className="font-medium text-sm sm:text-base md:text-lg lg:text-[15pt]">Process lists</h1>
+            <h1 className="font-medium text-sm sm:text-base md:text-lg lg:text-[15pt]">
+              Process lists
+            </h1>
             <button
               className="bg-[#8AB6D6] hover:bg-[#6494b5] px-2 sm:px-4 py-1 rounded-md text-white text-xs sm:text-sm md:text-base lg:text-[12pt]"
               onClick={resetProcessList}
