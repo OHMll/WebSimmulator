@@ -1,3 +1,5 @@
+import mergeSort from "./Mergesort";
+
 export default function RR(input, timeQuantum = 3) {
   // คัดลอกข้อมูลจาก input เพื่อลดการแก้ไขข้อมูลต้นฉบับ
   let processes = input.map(([pid, arrival, burst]) => ({
@@ -6,6 +8,8 @@ export default function RR(input, timeQuantum = 3) {
     burst,
     remainingTime: burst,
   }));
+
+  processes = mergeSort(processes, "arrival");
 
   let n = processes.length;
   let waitingTime = new Array(n).fill(0);
