@@ -13,7 +13,10 @@ function merge(left, right, key) {
     let i = 0, j = 0;
 
     while (i < left.length && j < right.length) {
-        if (left[i][key] <= right[j][key]) {
+        const leftVal = parseFloat(left[i][key]);
+        const rightVal = parseFloat(right[j][key]);
+
+        if (leftVal <= rightVal) {
             result.push(left[i]);
             i++;
         } else {
@@ -22,7 +25,6 @@ function merge(left, right, key) {
         }
     }
 
-    // ดึงส่วนที่เหลือของแต่ละฝั่งมาใส่ต่อ
     while (i < left.length) {
         result.push(left[i]);
         i++;

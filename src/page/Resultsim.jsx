@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, ScrollText, ZoomIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GanttChart2D from "../components/GanttChart2D";
 import { algorithmDescriptions } from "../data/Algodescription";
+import mergeSort from "../components/Mergesort";
 
 function Resultsim() {
   const navigate = useNavigate();
@@ -265,9 +266,7 @@ function Resultsim() {
   const renderSummaryTable = () => {
     if (!results) return null;
 
-    const sortedResults = [...algorithmResults].sort(
-      (a, b) => parseFloat(a.avgWaitingTime) - parseFloat(b.avgWaitingTime)
-    );
+    const sortedResults = mergeSort(algorithmResults, "avgWaitingTime");
 
     return (
       <div className="w-full max-w-[98vw] mx-auto bg-white rounded-lg shadow overflow-hidden mb-8 text-[10px] md:text-base">
