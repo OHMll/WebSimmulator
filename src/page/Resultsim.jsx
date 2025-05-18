@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ScrollText, ZoomIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import GanttChart2D from "../components/GanttChart2D";
+import { algorithmDescriptions } from "../data/Algodescription";
+import mergeSort from "../components/Mergesort";
 
 function Resultsim() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ function Resultsim() {
   const [currentPage, setCurrentPage] = useState(0);
   const [algorithmResults, setAlgorithmResults] = useState([]);
   const [zoomedChart, setZoomedChart] = useState(null);
+  const [algorithmInfo, setAlgorithmInfo] = useState(null);
   const cardsPerPage = 3;
 
   useEffect(() => {
@@ -33,11 +36,11 @@ function Resultsim() {
           const extractedResults = parsedResults.algorithm
             .split("+")
             .map((algo) => ({
-            name: algo,
-            avgWaitingTime: parsedResults.avgWaitingTime,
-            avgTurnaroundTime: parsedResults.avgTurnaroundTime,
-            contextData: parsedResults.contextData,
-          }));
+              name: algo,
+              avgWaitingTime: parsedResults.avgWaitingTime,
+              avgTurnaroundTime: parsedResults.avgTurnaroundTime,
+              contextData: parsedResults.contextData,
+            }));
           setAlgorithmResults(extractedResults);
         }
       } catch (err) {
@@ -62,69 +65,67 @@ function Resultsim() {
     navigate("/simulator");
   };
 
-const renderGanttChart = (contextData, isZoomed = false) => {
-  if (!contextData || contextData.length === 0) {
-    return <div className="text-gray-500">ไม่มีข้อมูล Gantt Chart</div>;
-  }
+  const renderGanttChart = (contextData, isZoomed = false) => {
+    if (!contextData || contextData.length === 0) {
+      return <div className="text-gray-500">ไม่มีข้อมูล Gantt Chart</div>;
+    }
 
     const scheduleData = contextData.map((item) => ({
-    startTime: item.start,
-    duration: item.duration,
+      startTime: item.start,
+      duration: item.duration,
       processId: item.pid,
-  }));
+    }));
 
-  return (
+    return (
       <div style={{ height: "100%", width: "100%" }}>
-      <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
-    </div>
-  );
-};
-
-const renderZoomModal = () => {
-  if (!zoomedChart) return null;
-  const { name, contextData } = zoomedChart;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-      onClick={() => setZoomedChart(null)}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl p-6 max-w-5xl w-full h-[90vh] relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-          <h2 className="text-xl font-bold mb-4">
-            {name} - Gantt Chart
-          </h2>
-        <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
-          {renderGanttChart(contextData, true)}
-        </div>
-        <button
-          onClick={() => setZoomedChart(null)}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-        >
-          ✖
-        </button>
+        <GanttChart2D scheduleData={scheduleData} isZoomed={isZoomed} />
       </div>
-    </div>
-  );
-};
+    );
+  };
+
+  const renderZoomModal = () => {
+    if (!zoomedChart) return null;
+    const { name, contextData } = zoomedChart;
+
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        onClick={() => setZoomedChart(null)}
+      >
+        <div
+          className="bg-white rounded-lg shadow-xl p-6 max-w-5xl w-full h-[90vh] relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-xl font-bold mb-4">{name} - Gantt Chart</h2>
+          <div className="h-[calc(90vh-120px)] rounded bg-gray-50">
+            {renderGanttChart(contextData, true)}
+          </div>
+          <button
+            onClick={() => setZoomedChart(null)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+          >
+            ✖
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Updated to make the algorithm cards responsive with correct desktop layout
-const renderAlgorithmCards = () => {
-  if (!results) return null;
+  const renderAlgorithmCards = () => {
+    if (!results) return null;
 
-  const algorithms = results.algorithm.split("+");
-  const totalPages = Math.ceil(algorithms.length / cardsPerPage);
-  const startIdx = currentPage * cardsPerPage;
-  const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
+    const algorithms = results.algorithm.split("+");
+    const totalPages = Math.ceil(algorithms.length / cardsPerPage);
+    const startIdx = currentPage * cardsPerPage;
+    const endIdx = Math.min(startIdx + cardsPerPage, algorithms.length);
     const currentAlgorithms = algorithmResults
       .filter((a) => results.algorithm.split("+").includes(a.name))
       .slice(startIdx, endIdx);
 
     // For mobile: 2x2 grid (2 columns, 2 rows)
     // For desktop: Full width cards in separate containers as shown in image
-  return (
+    return (
       <div className="w-full md:w-[90vw]">
         {/* Mobile view - 2x2 grid */}
         <div className="flex flex-wrap justify-center gap-[2%] md:hidden w-full max-w-full mx-auto">
@@ -140,9 +141,17 @@ const renderAlgorithmCards = () => {
                 style={{ height: "280px", minHeight: "280px" }}
               >
                 <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
+                  <div className="absolute top-2 left-2">
+                    <button
+                      className="text-blue-400 hover:text-blue-200"
+                      onClick={() => setAlgorithmInfo(getAlgorithmInfo(algo))}
+                    >
+                      <ScrollText size={14} />
+                    </button>
+                  </div>
                   <h3 className="font-bold text-xs">{algo}</h3>
                   <button
-                    className="absolute top-2 right-2 text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center z-10"
+                    className="absolute top-2 right-2 text-blue-400 hover:text-blue-200"
                     onClick={() =>
                       setZoomedChart({
                         name: algo,
@@ -150,7 +159,7 @@ const renderAlgorithmCards = () => {
                       })
                     }
                   >
-                    <span className="mr-1">🔍</span>
+                    <ZoomIn size={14} />
                   </button>
                 </div>
                 <div className="p-2 h-full">
@@ -167,7 +176,10 @@ const renderAlgorithmCards = () => {
         <div
           className={`hidden md:grid w-full max-w-full mx-auto justify-items-center gap-6`}
           style={{
-            gridTemplateColumns: `repeat(${Math.min(currentAlgorithms.length, 4)}, minmax(0, 1fr))`
+            gridTemplateColumns: `repeat(${Math.min(
+              currentAlgorithms.length,
+              4
+            )}, minmax(0, 1fr))`,
           }}
         >
           {currentAlgorithms.map((algoData, idx) => {
@@ -184,9 +196,17 @@ const renderAlgorithmCards = () => {
                 className={`bg-white rounded-lg shadow-md overflow-hidden mb-4 ${cardWidth}`}
               >
                 <div className="bg-gray-800 text-white py-2 px-4 text-center rounded-t relative">
+                  <div className="absolute top-2 left-2">
+                    <button
+                      className="text-blue-400 hover:text-blue-200"
+                      onClick={() => setAlgorithmInfo(getAlgorithmInfo(algo))}
+                    >
+                      <ScrollText />
+                    </button>
+                  </div>
                   <h3 className="font-bold text-base">{algo}</h3>
                   <button
-                    className="absolute top-2 right-2 text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center z-10"
+                    className="absolute top-2 right-2 text-blue-400 hover:text-blue-200"
                     onClick={() =>
                       setZoomedChart({
                         name: algo,
@@ -194,7 +214,7 @@ const renderAlgorithmCards = () => {
                       })
                     }
                   >
-                    <span className="mr-1">🔍</span>
+                    <ZoomIn />
                   </button>
                 </div>
                 <div className="p-4">
@@ -205,8 +225,10 @@ const renderAlgorithmCards = () => {
               </div>
             );
           })}
-      </div>
-        {algorithmResults.filter((a) => results.algorithm.split("+").includes(a.name)).length > cardsPerPage && (
+        </div>
+        {algorithmResults.filter((a) =>
+          results.algorithm.split("+").includes(a.name)
+        ).length > cardsPerPage && (
           <div className="flex justify-center mt-2 mb-2 md:mt-4 space-x-2 text-[12px] md:text-base">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(0, prev - 1))}
@@ -218,7 +240,7 @@ const renderAlgorithmCards = () => {
               }`}
             >
               <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
-          </button>
+            </button>
             <div className="flex items-center px-2 md:px-4 font-medium">
               {currentPage + 1} / {totalPages}
             </div>
@@ -234,64 +256,62 @@ const renderAlgorithmCards = () => {
               }`}
             >
               <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
- const renderSummaryTable = () => {
-  if (!results) return null;
-
-    const sortedResults = [...algorithmResults].sort(
-      (a, b) => parseFloat(a.avgWaitingTime) - parseFloat(b.avgWaitingTime)
-  );
-
-  return (
-      <div className="w-full max-w-[98vw] mx-auto bg-white rounded-lg shadow overflow-hidden mb-8 text-[10px] md:text-base">
-      <div className="grid grid-cols-3 bg-blue-500 text-white">
-        <div className="py-2 px-4 text-center">Algorithm</div>
-        <div className="py-2 px-4 text-center">Average Waiting Time</div>
-        <div className="py-2 px-4 text-center">Average Turn Around Time</div>
+            </button>
+          </div>
+        )}
       </div>
-      {sortedResults.map((algo, idx) => (
-        <div 
-          key={idx} 
+    );
+  };
+
+  const renderSummaryTable = () => {
+    if (!results) return null;
+
+    const sortedResults = mergeSort(algorithmResults, "avgWaitingTime");
+
+    return (
+      <div className="w-full max-w-[98vw] mx-auto bg-white rounded-lg shadow overflow-hidden mb-8 text-[10px] md:text-base">
+        <div className="grid grid-cols-3 bg-blue-500 text-white">
+          <div className="py-2 px-4 text-center">Algorithm</div>
+          <div className="py-2 px-4 text-center">Average Waiting Time</div>
+          <div className="py-2 px-4 text-center">Average Turn Around Time</div>
+        </div>
+        {sortedResults.map((algo, idx) => (
+          <div
+            key={idx}
             className={`grid grid-cols-3 ${
               idx % 2 === 0 ? "bg-gray-50" : "bg-white"
             } border-b`}
-        >
-          <div className="py-2 px-4 text-center font-medium">{algo.name}</div>
+          >
+            <div className="py-2 px-4 text-center font-medium">{algo.name}</div>
             <div className="py-2 px-4 text-center">
               {formatTime(algo.avgWaitingTime)}
             </div>
             <div className="py-2 px-4 text-center">
               {formatTime(algo.avgTurnaroundTime)}
             </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   const renderProcessTable = () => {
     const data =
       processList.length > 0
         ? processList
         : results?.contextData?.reduce((acc, item) => {
-      if (!acc[item.pid]) {
-        acc[item.pid] = {
-          id: item.pid,
-          startTime: item.originalStartTime || 0,
-          burstTime: item.originalBurstTime || 0,
-          priority: item.priority || 0,
-          timeQuantumRR: "-",
+            if (!acc[item.pid]) {
+              acc[item.pid] = {
+                id: item.pid,
+                startTime: item.originalStartTime || 0,
+                burstTime: item.originalBurstTime || 0,
+                priority: item.priority || 0,
+                timeQuantumRR: "-",
                 timeQuantumMLQF: "-",
-        };
-      }
-      return acc;
-    }, {});
+              };
+            }
+            return acc;
+          }, {});
     if (!data || Object.keys(data).length === 0) return null;
 
     const processes = Array.isArray(data) ? data : Object.values(data);
@@ -308,23 +328,50 @@ const renderAlgorithmCards = () => {
           <table className="min-w-full text-[10px] md:text-base">
             <thead className="bg-gray-200 sticky top-0 z-10">
               <tr>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Process ID</th>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Start Time</th>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Burst Time</th>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Priority</th>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Time Quantum(RR)</th>
-                <th className="py-1 px-1 text-center text-[10px] md:text-base">Time Quantum(MLQF)</th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Process ID
+                </th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Start Time
+                </th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Burst Time
+                </th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Priority
+                </th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Time Quantum(RR)
+                </th>
+                <th className="py-1 px-1 text-center text-[10px] md:text-base">
+                  Time Quantum(MLQF)
+                </th>
               </tr>
             </thead>
             <tbody>
               {processes.map((p, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.id}</td>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.startTime}</td>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.burstTime}</td>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.priority}</td>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.timeQuantumRR}</td>
-                  <td className="py-1 px-1 text-center text-[10px] md:text-base">{p.timeQuantumMLQF}</td>
+                <tr
+                  key={idx}
+                  className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.id}
+                  </td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.startTime}
+                  </td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.burstTime}
+                  </td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.priority}
+                  </td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.timeQuantumRR}
+                  </td>
+                  <td className="py-1 px-1 text-center text-[10px] md:text-base">
+                    {p.timeQuantumMLQF}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -357,6 +404,50 @@ const renderAlgorithmCards = () => {
     setSelectedAlgorithms([]);
   };
 
+  const getAlgorithmInfo = (algoName) => {
+    return algorithmDescriptions[algoName];
+  };
+
+  // เพิ่ม Modal component สำหรับแสดงข้อมูลอัลกอริทึม
+  const renderAlgorithmInfoModal = () => {
+    if (!algorithmInfo) return null;
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        onClick={() => setAlgorithmInfo(null)}
+      >
+        <div
+          className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-xl font-bold mb-4">{algorithmInfo.title}</h2>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Formula:</h3>
+              <p className="bg-gray-100 p-2 rounded text-sm">{algorithmInfo.formula}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Description:</h3>
+              <p className="text-sm">{algorithmInfo.description}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Calculation:</h3>
+              <div className="bg-gray-100 p-2 rounded">
+                <p className="text-sm whitespace-pre-line">{algorithmInfo.calculation}</p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setAlgorithmInfo(null)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+          >
+            ✖
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col items-start w-full min-h-screen pb-16">
       <div className="container p-2 md:p-6 pt-6 md:pt-16 flex flex-col items-center max-w-6xl mx-auto">
@@ -381,6 +472,7 @@ const renderAlgorithmCards = () => {
             {renderAlgorithmCards()}
             {renderSummaryTable()}
             {renderZoomModal()}
+            {renderAlgorithmInfoModal()}
           </>
         ) : (
           <div className="text-center py-10">
