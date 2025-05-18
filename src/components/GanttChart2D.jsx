@@ -189,7 +189,7 @@ const GanttChart2D = ({ scheduleData, isZoomed = false }) => {
         // วาด Process ID
         ctx.fillStyle = '#2c3e50';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textBaseline = 'right';
         ctx.font = fontSize.label; // ใช้ฟอนต์ที่ปรับตามโหมดและขนาดหน้าจอ
         ctx.fillText(
           `P${processId}`,

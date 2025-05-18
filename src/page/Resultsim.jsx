@@ -417,11 +417,22 @@ function Resultsim() {
         onClick={() => setAlgorithmInfo(null)}
       >
         <div
-          className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4"
+          className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4"
           onClick={(e) => e.stopPropagation()}
         >
-          <h2 className="text-xl font-bold mb-4">{algorithmInfo.title}</h2>
-          <div className="space-y-4">
+          {/* Header section with close button */}
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-xl font-bold">{algorithmInfo.title}</h2>
+            <button
+              onClick={() => setAlgorithmInfo(null)}
+              className="text-gray-500 hover:text-gray-800 p-1"
+            >
+              ✖
+            </button>
+          </div>
+
+          {/* Content section */}
+          <div className="p-6 space-y-4">
             <div>
               <h3 className="font-semibold">Formula:</h3>
               <p className="bg-gray-100 p-2 rounded text-sm">{algorithmInfo.formula}</p>
@@ -437,12 +448,6 @@ function Resultsim() {
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setAlgorithmInfo(null)}
-            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-          >
-            ✖
-          </button>
         </div>
       </div>
     );

@@ -189,13 +189,15 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   };
 
   const addProcess = () => {
-    // ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่
-    if (
-      !inputValues.startTime ||
-      !inputValues.burstTime ||
-      !inputValues.priority
-    ) {
+    // ตรวจสอบว่ามีข้อมูลครบถ้วนหรือไม่ โดยเช็คเฉพาะฟิลด์ที่จำเป็น
+    if (!inputValues.startTime || !inputValues.burstTime) {
       alert("Please fill in all required fields");
+      return;
+    }
+
+    // ถ้าเลือก Priority แต่ไม่ได้กรอกค่า Priority
+    if (showPriority && !inputValues.priority) {
+      alert("Please fill in priority value");
       return;
     }
 
@@ -204,7 +206,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
       id: formatProcessId(processIdCounter),
       startTime: inputValues.startTime,
       burstTime: inputValues.burstTime,
-      priority: inputValues.priority,
+      priority: showPriority ? inputValues.priority : "-",
       timeQuantumRR: showRoundRobin ? inputValues.timeQuantumRR : "-",
       timeQuantumMLQF: showMLQF
         ? `${inputValues.first || "1"},${inputValues.second || "2"},${
@@ -292,7 +294,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
         id: formatProcessId(startId + i),
         startTime: Math.floor(Math.random() * 51),
         burstTime: rawBurstTimes[i],
-        priority: Math.floor(Math.random() * 50) + 1,
+        priority: showPriority ? Math.floor(Math.random() * 50) + 1 : "-", // เพิ่มเงื่อนไขการ generate priority
         timeQuantumRR: showRoundRobin ? rrQuantumRef.current.toString() : "-",
         timeQuantumMLQF: showMLQF ? mlqfQuantumRef.current : "-",
       });
@@ -583,6 +585,7 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
   };
 
   // ตรวจสอบเงื่อนไขของอัลกอริทึมที่เลือก
+  const showPriority = selectedAlgo.includes("Priority");
   const showRoundRobin = selectedAlgo.includes("Round Robin");
   const showMLQF = selectedAlgo.includes("Multilevel Queue With Feedback");
 
@@ -652,13 +655,15 @@ function Parameter({ selectedAlgo, setSelectedAlgo }) {
                 error={inputErrors.burstTime}
                 value={inputValues.burstTime}
               />
-              <InputField
-                label="Priority"
-                inputId="priority"
-                validateInput={validateInput}
-                error={inputErrors.priority}
-                value={inputValues.priority}
-              />
+              {showPriority && (
+                <InputField
+                  label="Priority"
+                  inputId="priority"
+                  validateInput={validateInput}
+                  error={inputErrors.priority}
+                  value={inputValues.priority}
+                />
+              )}
               <button
                 className="w-full lg:w-[70%] bg-[#55A972] hover:bg-[#3b7650] transition-all duration-300 ease-in-out transform py-2 rounded-md text-white font-medium text-sm sm:text-base md:text-lg lg:text-[16pt]"
                 onClick={addProcess}
