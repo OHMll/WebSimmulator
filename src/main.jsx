@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import "./index.css";
 import Menubar from "./components/menubar";  // ตรวจสอบ path ว่าตรงกับโครงสร้างโปรเจคของคุณ
 import Homepage from "./page/Home";
